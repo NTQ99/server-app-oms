@@ -10,8 +10,13 @@ class Result {
 }
 
 public class BaseResponseModel<T> {
+    public BaseResponseModel(){};
     public BaseResponseModel(String status, String message) {
-        result = new Result(status, message);
+        this.result = new Result(status, message);
+    }
+    public BaseResponseModel(String status, String message, T data) {
+        this.result = new Result(status, message);
+        this.data = data;
     }
     public T data;
     public Result result;

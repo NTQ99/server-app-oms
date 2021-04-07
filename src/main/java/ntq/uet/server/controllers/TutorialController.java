@@ -3,15 +3,12 @@ package ntq.uet.server.controllers;
 import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import ntq.uet.server.models.BaseResponseModel;
 import ntq.uet.server.models.Tutorial;
 import ntq.uet.server.services.TutorialService;
 
-@CrossOrigin(origins = "http://localhost:8081")
 @RestController
 @RequestMapping("/api")
 public class TutorialController {
