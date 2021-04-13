@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import ntq.uet.server.models.CustomerModel;
+import ntq.uet.server.models.customer.CustomerModel;
 import ntq.uet.server.repositories.CustomerRepository;
 
 @Service("customerService")
@@ -19,6 +19,10 @@ public class CustomerService {
 
     public CustomerModel getCustomerById(String id) {
         return customerRepository.findById(id).orElse(null);
+    }
+
+    public CustomerModel getCustomerByCode(String code) {
+        return customerRepository.findByCustomerCode(code);
     }
 
     public List<CustomerModel> getCustomerByPhone(String phone) {
@@ -77,4 +81,5 @@ public class CustomerService {
     public void deleteAllCustomers() {
         customerRepository.deleteAll();
     }
+
 }

@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import ntq.uet.server.models.BaseResponseModel;
-import ntq.uet.server.models.CustomerModel;
+import ntq.uet.server.models.customer.CustomerModel;
 import ntq.uet.server.services.CustomerService;
 
 @RestController
@@ -60,8 +60,13 @@ public class CustomerController {
         BaseResponseModel<CustomerModel> response;
 
         try {
-            CustomerModel newCustomer = service.createCustomer(customer);
-            response = new BaseResponseModel<>("succ", "", newCustomer);
+            CustomerModel tmp = service.getCustomerByPhone(customer.getCustomerPhone()).get(0);
+            if (tmp == null) {
+                CustomerModel newCustomer = service.createCustomer(customer);
+                response = new BaseResponseModel<>("succ", "", newCustomer);
+            } else {
+                response = new BaseResponseModel<>("succ", "exist", tmp);
+            }
         } catch (Exception e) {
             return new BaseResponseModel<>("err", "internal_server_error");
         }
@@ -74,6 +79,10 @@ public class CustomerController {
         BaseResponseModel<CustomerModel> response;
 
         try {
+            CustomerModel currCustomerData = service.getCustomerById(id);
+            if (currCustomerData.equals(newCustomerData)) {
+                return new BaseResponseModel<>("err", "data_not_change", currCustomerData);
+            }
             CustomerModel newCustomer = service.updateCustomer(id, newCustomerData);
             if (newCustomer != null) {
                 response = new BaseResponseModel<>("succ", "", newCustomer);

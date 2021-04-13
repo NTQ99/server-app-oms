@@ -1,6 +1,7 @@
-package ntq.uet.server.models;
+package ntq.uet.server.models.product;
 
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -11,24 +12,24 @@ public class ProductModel {
     private String id;
 
     private String productCode;
-    private String productName;
-    private String productDetail;
-    private String [] productPhotos;
-    private Double retailPrice;
-    private Double wholesalePrice;
-    private Double promotion;
-    private Date createdDate;
+    private String productName="";
+    private String productDetail="";
+    private List<String> productPhotos = new ArrayList<>();
+    private Double retailPrice=0.0;
+    private Double wholesalePrice=0.0;
+    private Double promotion=0.0;
+    private long createdAt;
 
     public ProductModel(){
         long now = System.currentTimeMillis();
         this.setProductCode(String.valueOf(now));
-        this.setCreatedDate(new Date(now));
+        this.setCreatedAt(now);
     };
-    public ProductModel(String productName, String productDetail, String[] productPhotos, Double retailPrice,
+    public ProductModel(String productName, String productDetail, List<String> productPhotos, Double retailPrice,
             Double wholesalePrice, Double promotion) {
         long now = System.currentTimeMillis();
         this.setProductCode(String.valueOf(now));
-        this.setCreatedDate(new Date(now));
+        this.setCreatedAt(now);
         this.setProductName(productName);
         this.setProductDetail(productDetail);
         this.setProductPhotos(productPhotos);
@@ -41,11 +42,11 @@ public class ProductModel {
         return id;
     }
 
-    public Date getCreatedDate() {
-        return createdDate;
+    public long getCreatedAt() {
+        return createdAt;
     }
-    public void setCreatedDate(Date createdDate) {
-        this.createdDate = createdDate;
+    public void setCreatedAt(long createdAt) {
+        this.createdAt = createdAt;
     }
 
     public Double getPromotion() {
@@ -69,10 +70,10 @@ public class ProductModel {
         this.retailPrice = retailPrice;
     }
 
-    public String [] getProductPhotos() {
+    public List<String> getProductPhotos() {
         return productPhotos;
     }
-    public void setProductPhotos(String [] productPhotos) {
+    public void setProductPhotos(List<String>productPhotos) {
         this.productPhotos = productPhotos;
     }
 
@@ -95,5 +96,17 @@ public class ProductModel {
     }
     public void setProductCode(String productCode) {
         this.productCode = productCode;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ProductModel product = (ProductModel) o;
+
+        return this.getProductName().equals(product.getProductName()) && this.getProductDetail().equals(product.getProductDetail())
+            && this.getProductPhotos().equals(product.getProductPhotos()) && this.getPromotion().equals(product.getPromotion())
+            && this.getRetailPrice().equals(product.getRetailPrice()) && this.getWholesalePrice().equals(product.getWholesalePrice());
     }
 }

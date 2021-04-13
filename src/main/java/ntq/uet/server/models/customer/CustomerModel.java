@@ -1,31 +1,65 @@
-package ntq.uet.server.models;
+package ntq.uet.server.models.customer;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 // customer model
 @Document(collection = "customers")
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class CustomerModel {
 
     // address struct
     public static class Address {
-        public String ward;
-        public String district;
-        public String province;
+        private String ward="";
+        private String district="";
+        private String province="";
         // address detail
-        public String detail;
+        private String detail="";
 
         public Address() {}
+        
         public Address(String ward, String district, String province, String detail) {
-            this.ward = ward;
-            this.district = district;
-            this.province = province;
-            this.detail = detail;
+            this.setDetail(detail);
+            this.setDistrict(district);
+            this.setProvince(province);
+            this.setWard(ward);
         };
+
+        public String getDetail() {
+            return detail;
+        }
+        public void setDetail(String detail) {
+            this.detail = detail;
+        }
+
+        public String getProvince() {
+            return province;
+        }
+
+        public void setProvince(String province) {
+            this.province = province;
+        }
+
+        public String getDistrict() {
+            return district;
+        }
+
+        public void setDistrict(String district) {
+            this.district = district;
+        }
+
+        public String getWard() {
+            return ward;
+        }
+
+        public void setWard(String ward) {
+            this.ward = ward;
+        }
 
         @Override
         public boolean equals(Object o) {
@@ -42,22 +76,22 @@ public class CustomerModel {
     @Id
     private String id;
 
-    private String customerCode;
-    private String customerName;
+    private String customerCode="";
+    private String customerName="";
     private List<Address> customerAddresses = new ArrayList<>();
-    private String customerPhone;
-    private Date createdDate;
+    private String customerPhone="";
+    private long createdAt;
 
     public CustomerModel() {
         long now = System.currentTimeMillis();
         this.setCustomerCode(String.valueOf(now));
-        this.setCreatedDate(new Date(now));
+        this.setCreatedAt(now);
     };
 
     public CustomerModel(String customerName, Address customerAddress, String customerPhone) {
         long now = System.currentTimeMillis();
         this.setCustomerCode(String.valueOf(System.currentTimeMillis()));
-        this.setCreatedDate(new Date(now));
+        this.setCreatedAt(now);
         this.setCustomerName(customerName);
         this.addCustomerAddress(customerAddress);
         this.setCustomerPhone(customerPhone);
@@ -67,12 +101,12 @@ public class CustomerModel {
         return id;
     }
 
-    public Date getCreatedDate() {
-        return createdDate;
+    public long getCreatedAt() {
+        return createdAt;
     }
 
-    public void setCreatedDate(Date createdDate) {
-        this.createdDate = createdDate;
+    public void setCreatedAt(long createdAt) {
+        this.createdAt = createdAt;
     }
 
     public String getCustomerPhone() {
@@ -116,5 +150,15 @@ public class CustomerModel {
 
     public void setCustomerCode(String customerCode) {
         this.customerCode = customerCode;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        CustomerModel customer = (CustomerModel) o;
+
+        return this.getCustomerName().equals(customer.getCustomerName()) && this.getCustomerPhone().equals(customer.getCustomerPhone());
     }
 }
