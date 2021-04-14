@@ -3,6 +3,8 @@ package ntq.uet.server.services;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import ntq.uet.server.models.customer.CustomerModel;
@@ -25,12 +27,16 @@ public class CustomerService {
         return customerRepository.findByCustomerCode(code);
     }
 
-    public List<CustomerModel> getCustomerByPhone(String phone) {
-        return customerRepository.findByCustomerPhone(phone);
+    public CustomerModel getCustomerByPhone(String phone){
+        return customerRepository.findOneByCustomerPhone(phone);
     }
 
-    public List<CustomerModel> getAllCustomers() {
-        return customerRepository.findAll();
+    public Page<CustomerModel> findCustomerByPhone(String phone, Pageable paging) {
+        return customerRepository.findByCustomerPhoneContaining(phone, paging);
+    }
+
+    public Page<CustomerModel> getAllCustomers(Pageable paging) {
+        return customerRepository.findAll(paging);
     }
 
     public CustomerModel updateCustomer(String id, CustomerModel newCustomerData) {

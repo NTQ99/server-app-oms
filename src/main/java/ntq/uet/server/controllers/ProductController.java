@@ -4,9 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import ntq.uet.server.models.BaseResponseModel;
+import ntq.uet.server.exceptions.ResourceNotFoundException;
+import ntq.uet.server.models.PageResponseModel;
 import ntq.uet.server.models.product.ProductModel;
 import ntq.uet.server.services.ProductService;
 
@@ -18,109 +24,85 @@ public class ProductController {
     private ProductService service;
 
     @GetMapping
-    public BaseResponseModel<List<ProductModel>> getAll(@RequestBody(required = false) String productName) {
-        BaseResponseModel<List<ProductModel>> response;
-        List<ProductModel> allProducts = new ArrayList<>();
+    public ResponseEntity<PageResponseModel<ProductModel>> getAll(@RequestParam(required = false) String productName,
+            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
 
-        try {
-            if (productName == null) {
-                allProducts = service.getAllProducts();
-            } else {
-                allProducts = service.getProductByName(productName);
-            }
-        } catch (Exception e) {
-            return new BaseResponseModel<>("err", "internal_server_error");
+        List<ProductModel> allProducts = new ArrayList<>();
+        Pageable paging = PageRequest.of(page, size);
+        Page<ProductModel> pageProducts;
+
+        if (productName == null) {
+            pageProducts = service.getAllProducts(paging);
+        } else {
+            pageProducts = service.findProductByName(productName, paging);
         }
+
+        allProducts = pageProducts.getContent();
 
         if (!allProducts.isEmpty()) {
-            response = new BaseResponseModel<>("succ", "", allProducts);
+            return new ResponseEntity<>(new PageResponseModel<>(allProducts, pageProducts.getNumber(),
+                    pageProducts.getTotalElements(), pageProducts.getTotalPages()), HttpStatus.OK);
         } else {
-            response = new BaseResponseModel<>("err", "not_found");
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
 
-        return response;
     }
 
     @GetMapping("{id}")
-    public BaseResponseModel<ProductModel> getById(@PathVariable("id") String id) {
-        BaseResponseModel<ProductModel> response;
+    public ResponseEntity<ProductModel> getById(@PathVariable("id") String id) {
+
         ProductModel product = service.getProductById(id);
 
         if (product != null) {
-            response = new BaseResponseModel<>("succ", "", product);
+            return new ResponseEntity<>(product, HttpStatus.OK);
         } else {
-            return new BaseResponseModel<>("err", "internal_server_error");
+            throw new ResourceNotFoundException("Not found Product with id = " + id);
         }
 
-        return response;
     }
 
     @PostMapping
-    public BaseResponseModel<ProductModel> create(@RequestBody ProductModel product) {
-        BaseResponseModel<ProductModel> response;
+    public ResponseEntity<ProductModel> create(@RequestBody ProductModel product) {
 
-        try {
-            ProductModel tmp = service.getProductByName(product.getProductName()).get(0);
-            if (tmp == null) {
-                ProductModel newProduct = service.createProduct(product);
-                response = new BaseResponseModel<>("succ", "", newProduct);
-            } else {
-                response = new BaseResponseModel<>("succ", "exist", tmp);
-            }
-        } catch (Exception e) {
-            return new BaseResponseModel<>("err", "internal_server_error");
+        ProductModel tmp = service.getProductByName(product.getProductName());
+        if (tmp == null) {
+            return new ResponseEntity<>(service.createProduct(product), HttpStatus.CREATED);
+        } else {
+            return new ResponseEntity<>(tmp, HttpStatus.CONFLICT);
         }
 
-        return response;
     }
 
     @PutMapping("{id}")
-    public BaseResponseModel<ProductModel> update(@PathVariable("id") String id, @RequestBody ProductModel newProductData) {
-        BaseResponseModel<ProductModel> response;
+    public ResponseEntity<ProductModel> update(@PathVariable("id") String id,
+            @RequestBody ProductModel newProductData) {
 
-        try {
-            ProductModel currProductData = service.getProductById(id);
-            if (currProductData.equals(newProductData)) {
-                return new BaseResponseModel<>("err", "data_not_change", currProductData);
-            }
-            ProductModel newProduct = service.updateProduct(id, newProductData);
-            if (newProduct != null) {
-                response = new BaseResponseModel<>("succ", "", newProduct);
-            } else {
-                response = new BaseResponseModel<>("err", "not_found");
-            }
-        } catch (Exception e) {
-            return new BaseResponseModel<>("err", "internal_server_error");
+        ProductModel currProductData = service.getProductById(id);
+        if (currProductData == null) {
+            throw new ResourceNotFoundException("Not found Product with id =" + id);
         }
 
-        return response;
+        if (currProductData.equals(newProductData)) {
+            return new ResponseEntity<>(currProductData, HttpStatus.NOT_MODIFIED);
+        }
+        ProductModel newProductModified = service.updateProduct(id, newProductData);
+        return new ResponseEntity<>(newProductModified, HttpStatus.OK);
+
     }
 
     @DeleteMapping("{id}")
-    public BaseResponseModel<?> delete(@PathVariable("id") String id) {
-        BaseResponseModel<?> response;
+    public ResponseEntity<?> delete(@PathVariable("id") String id) {
 
-        try {
-            service.deleteProduct(id);
-            response = new BaseResponseModel<>("succ", "");
-        } catch (Exception e) {
-            return new BaseResponseModel<>("err", "internal_server_error");
-        }
+        service.deleteProduct(id);
+        return new ResponseEntity<>(HttpStatus.OK);
 
-        return response;
     }
 
     @DeleteMapping
-    public BaseResponseModel<?> deleteAll() {
-        BaseResponseModel<?> response;
+    public ResponseEntity<?> deleteAll() {
 
-        try {
-            service.deleteAllProducts();
-            response = new BaseResponseModel<>("succ", "");
-        } catch (Exception e) {
-            return new BaseResponseModel<>("err", "internal_server_error");
-        }
+        service.deleteAllProducts();
+        return new ResponseEntity<>(HttpStatus.OK);
 
-        return response;
     }
 }

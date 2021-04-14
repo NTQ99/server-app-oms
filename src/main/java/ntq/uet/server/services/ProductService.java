@@ -3,6 +3,8 @@ package ntq.uet.server.services;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import ntq.uet.server.models.product.ProductModel;
@@ -25,12 +27,16 @@ public class ProductService {
         return productRepository.findByProductCode(code);
     }
 
-    public List<ProductModel> getProductByName(String name) {
-        return productRepository.findByProductName(name);
+    public ProductModel getProductByName(String name) {
+        return productRepository.findOneByProductName(name);
     }
 
-    public List<ProductModel> getAllProducts() {
-        return productRepository.findAll();
+    public Page<ProductModel> findProductByName(String name, Pageable paging) {
+        return productRepository.findByProductNameContainingIgnoreCase(name, paging);
+    }
+
+    public Page<ProductModel> getAllProducts(Pageable paging) {
+        return productRepository.findAll(paging);
     }
 
     public ProductModel updateProduct(String id, ProductModel newProductData) {

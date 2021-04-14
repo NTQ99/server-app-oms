@@ -4,9 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import ntq.uet.server.models.BaseResponseModel;
+import ntq.uet.server.exceptions.ResourceNotFoundException;
+import ntq.uet.server.models.PageResponseModel;
 import ntq.uet.server.models.customer.CustomerModel;
 import ntq.uet.server.services.CustomerService;
 
@@ -18,163 +24,124 @@ public class CustomerController {
     private CustomerService service;
 
     @GetMapping
-    public BaseResponseModel<List<CustomerModel>> getAll(@RequestBody(required = false) String customerPhone) {
-        BaseResponseModel<List<CustomerModel>> response;
+    public ResponseEntity<PageResponseModel<CustomerModel>> getAll(@RequestParam(required = false) String customerPhone,
+            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+
         List<CustomerModel> allCustomers = new ArrayList<>();
+        Pageable paging = PageRequest.of(page, size);
+        Page<CustomerModel> pageCustomers;
 
-        try {
-            if (customerPhone == null) {
-                allCustomers = service.getAllCustomers();
-            } else {
-                allCustomers = service.getCustomerByPhone(customerPhone);
-            }
-        } catch (Exception e) {
-            return new BaseResponseModel<>("err", "internal_server_error");
-        }
-
-        if (!allCustomers.isEmpty()) {
-            response = new BaseResponseModel<>("succ", "", allCustomers);
+        if (customerPhone == null) {
+            pageCustomers = service.getAllCustomers(paging);
         } else {
-            response = new BaseResponseModel<>("err", "not_found");
+            pageCustomers = service.findCustomerByPhone(customerPhone, paging);
         }
 
-        return response;
+        allCustomers = pageCustomers.getContent();
+
+        if (allCustomers.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } else {
+            return new ResponseEntity<>(new PageResponseModel<>(allCustomers, pageCustomers.getNumber(),
+                    pageCustomers.getTotalElements(), pageCustomers.getTotalPages()), HttpStatus.OK);
+        }
+
     }
 
     @GetMapping("{id}")
-    public BaseResponseModel<CustomerModel> getById(@PathVariable("id") String id) {
-        BaseResponseModel<CustomerModel> response;
+    public ResponseEntity<CustomerModel> getById(@PathVariable("id") String id) {
+
         CustomerModel customer = service.getCustomerById(id);
 
         if (customer != null) {
-            response = new BaseResponseModel<>("succ", "", customer);
+            return new ResponseEntity<>(customer, HttpStatus.OK);
         } else {
-            return new BaseResponseModel<>("err", "internal_server_error");
+            throw new ResourceNotFoundException("Not found Customer with id = " + id);
         }
 
-        return response;
     }
 
     @PostMapping
-    public BaseResponseModel<CustomerModel> create(@RequestBody CustomerModel customer) {
-        BaseResponseModel<CustomerModel> response;
+    public ResponseEntity<CustomerModel> create(@RequestBody CustomerModel customerData) {
 
-        try {
-            CustomerModel tmp = service.getCustomerByPhone(customer.getCustomerPhone()).get(0);
-            if (tmp == null) {
-                CustomerModel newCustomer = service.createCustomer(customer);
-                response = new BaseResponseModel<>("succ", "", newCustomer);
-            } else {
-                response = new BaseResponseModel<>("succ", "exist", tmp);
-            }
-        } catch (Exception e) {
-            return new BaseResponseModel<>("err", "internal_server_error");
+        CustomerModel tmp = service.getCustomerByPhone(customerData.getCustomerPhone());
+        if (tmp == null) {
+            return new ResponseEntity<>(service.createCustomer(customerData), HttpStatus.CREATED);
+        } else {
+            return new ResponseEntity<>(tmp, HttpStatus.CONFLICT);
         }
 
-        return response;
     }
 
     @PutMapping("{id}")
-    public BaseResponseModel<CustomerModel> update(@PathVariable("id") String id, @RequestBody CustomerModel newCustomerData) {
-        BaseResponseModel<CustomerModel> response;
+    public ResponseEntity<CustomerModel> update(@PathVariable("id") String id,
+            @RequestBody CustomerModel newCustomerData) {
 
-        try {
-            CustomerModel currCustomerData = service.getCustomerById(id);
-            if (currCustomerData.equals(newCustomerData)) {
-                return new BaseResponseModel<>("err", "data_not_change", currCustomerData);
-            }
-            CustomerModel newCustomer = service.updateCustomer(id, newCustomerData);
-            if (newCustomer != null) {
-                response = new BaseResponseModel<>("succ", "", newCustomer);
-            } else {
-                response = new BaseResponseModel<>("err", "not_found");
-            }
-        } catch (Exception e) {
-            return new BaseResponseModel<>("err", "internal_server_error");
+        CustomerModel currCustomerData = service.getCustomerById(id);
+        if (currCustomerData == null) {
+            throw new ResourceNotFoundException("Not found Customer with id = " + id);
         }
 
-        return response;
+        if (currCustomerData.equals(newCustomerData)) {
+            return new ResponseEntity<>(currCustomerData, HttpStatus.NOT_MODIFIED);
+        }
+        CustomerModel newCustomerModified = service.updateCustomer(id, newCustomerData);
+        return new ResponseEntity<>(newCustomerModified, HttpStatus.OK);
+
     }
 
     @PutMapping("{id}/address/add")
-    public BaseResponseModel<CustomerModel> addAddress(@PathVariable("id") String id, @RequestBody CustomerModel.Address newAddress) {
-        BaseResponseModel<CustomerModel> response;
+    public ResponseEntity<CustomerModel> addAddress(@PathVariable("id") String id,
+            @RequestBody CustomerModel.Address newAddress) {
 
-        try {
-            CustomerModel newCustomer = service.addCustomerAddress(id, newAddress);
-            if (newCustomer != null) {
-                response = new BaseResponseModel<>("succ", "", newCustomer);
-            } else {
-                response = new BaseResponseModel<>("err", "not_found");
-            }
-        } catch (Exception e) {
-            return new BaseResponseModel<>("err", "internal_server_error");
+        CustomerModel newCustomerModified = service.addCustomerAddress(id, newAddress);
+        if (newCustomerModified != null) {
+            return new ResponseEntity<>(newCustomerModified, HttpStatus.OK);
+        } else {
+            throw new ResourceNotFoundException("Not found Customer with id = " + id);
         }
 
-        return response;
     }
 
     @PutMapping("{id}/address/update")
-    public BaseResponseModel<CustomerModel> updateAddress(@PathVariable("id") String id, @RequestBody CustomerModel.Address [] address) {
-        BaseResponseModel<CustomerModel> response;
+    public ResponseEntity<CustomerModel> updateAddress(@PathVariable("id") String id,
+            @RequestBody CustomerModel.Address[] address) {
 
-        try {
-            CustomerModel newCustomer = service.updateCustomerAddress(id, address[0], address[1]);
-            if (newCustomer != null) {
-                response = new BaseResponseModel<>("succ", "", newCustomer);
-            } else {
-                response = new BaseResponseModel<>("err", "not_found");
-            }
-        } catch (Exception e) {
-            return new BaseResponseModel<>("err", "internal_server_error");
+        CustomerModel newCustomerModified = service.updateCustomerAddress(id, address[0], address[1]);
+        if (newCustomerModified != null) {
+            return new ResponseEntity<>(newCustomerModified, HttpStatus.OK);
+        } else {
+            throw new ResourceNotFoundException("Not found Customer with id = " + id);
         }
 
-        return response;
     }
 
     @PutMapping("{id}/address/delete")
-    public BaseResponseModel<CustomerModel> removeAddress(@PathVariable("id") String id, @RequestBody CustomerModel.Address address) {
-        BaseResponseModel<CustomerModel> response;
+    public ResponseEntity<CustomerModel> removeAddress(@PathVariable("id") String id,
+            @RequestBody CustomerModel.Address address) {
 
-        try {
-            CustomerModel newCustomer = service.removeCustomerAddress(id, address);
-            if (newCustomer != null) {
-                response = new BaseResponseModel<>("succ", "", newCustomer);
-            } else {
-                response = new BaseResponseModel<>("err", "not_found");
-            }
-        } catch (Exception e) {
-            return new BaseResponseModel<>("err", "internal_server_error");
+        CustomerModel newCustomerModified = service.removeCustomerAddress(id, address);
+        if (newCustomerModified != null) {
+            return new ResponseEntity<>(newCustomerModified, HttpStatus.OK);
+        } else {
+            throw new ResourceNotFoundException("Not found Customer with id = " + id);
         }
 
-        return response;
     }
 
     @DeleteMapping("{id}")
-    public BaseResponseModel<?> delete(@PathVariable("id") String id) {
-        BaseResponseModel<?> response;
+    public ResponseEntity<?> delete(@PathVariable("id") String id) {
 
-        try {
-            service.deleteCustomer(id);
-            response = new BaseResponseModel<>("succ", "");
-        } catch (Exception e) {
-            return new BaseResponseModel<>("err", "internal_server_error");
-        }
+        service.deleteCustomer(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 
-        return response;
     }
 
     @DeleteMapping
-    public BaseResponseModel<?> deleteAll() {
-        BaseResponseModel<?> response;
+    public ResponseEntity<?> deleteAll() {
 
-        try {
-            service.deleteAllCustomers();
-            response = new BaseResponseModel<>("succ", "");
-        } catch (Exception e) {
-            return new BaseResponseModel<>("err", "internal_server_error");
-        }
+        service.deleteAllCustomers();
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 
-        return response;
     }
 }

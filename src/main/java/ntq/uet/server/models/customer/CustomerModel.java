@@ -88,12 +88,11 @@ public class CustomerModel {
         this.setCreatedAt(now);
     };
 
-    public CustomerModel(String customerName, Address customerAddress, String customerPhone) {
+    public CustomerModel(String customerName, String customerPhone) {
         long now = System.currentTimeMillis();
         this.setCustomerCode(String.valueOf(System.currentTimeMillis()));
         this.setCreatedAt(now);
         this.setCustomerName(customerName);
-        this.addCustomerAddress(customerAddress);
         this.setCustomerPhone(customerPhone);
     };
 
