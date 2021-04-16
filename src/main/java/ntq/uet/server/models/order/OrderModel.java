@@ -9,12 +9,12 @@ import ntq.uet.server.models.customer.CustomerModel;
 public class OrderModel {
 
     enum Status {
-        wait_for_confirmation, // chờ xác nhận từ người mua
+        wait_confirm, // chờ xác nhận từ người mua
         not_responded, // người mua không phản hồi
-        cancel, // hủy đơn
-        awaiting_transport, // chờ vận chuyển
-        successful_delivery, // giao thành công
-        failed_delivery // giao thất bại
+        canceled, // hủy đơn
+        await_trans, // chờ vận chuyển
+        success, // giao thành công
+        fail // giao thất bại
     }
 
     @Id
@@ -27,9 +27,10 @@ public class OrderModel {
     private String productCode = "";
     private String productName = "";
     private String deliveryUnit = "";
+    private String note = "";
     private CustomerModel.Address deliveryTo = new CustomerModel.Address();
     private Double shipFee = 0.0;
-    private Status status = Status.wait_for_confirmation;
+    private Status status = Status.wait_confirm;
     private int quantity = 0;
     private long createdAt;
 
@@ -39,8 +40,16 @@ public class OrderModel {
         this.setCreatedAt(now);
     }
 
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
+    }
+
     public OrderModel(String customerCode, String customerName, String customerPhone, String productCode,
-            String productName, String deliveryUnit, CustomerModel.Address deliveryTo, int quantity) {
+            String productName, String deliveryUnit, CustomerModel.Address deliveryTo, int quantity, String note) {
         long now = System.currentTimeMillis();
         this.setOrderCode(String.valueOf(now));
         this.setCreatedAt(now);
@@ -52,6 +61,7 @@ public class OrderModel {
         this.setDeliveryTo(deliveryTo);
         this.setShipFee(shipFee);
         this.setQuantity(quantity);
+        this.setNote(note);
     }
 
     public String getId() {
@@ -167,7 +177,8 @@ public class OrderModel {
                 && this.getProductCode().equals(order.getProductCode())
                 && this.getDeliveryUnit().equals(order.getDeliveryUnit())
                 && this.getDeliveryTo().equals(order.getDeliveryTo()) && this.getQuantity() == order.getQuantity()
-                && this.getShipFee().equals(order.getShipFee()) && this.getStatus().equals(order.getStatus());
+                && this.getShipFee().equals(order.getShipFee()) && this.getStatus().equals(order.getStatus())
+                && this.getNote().equals(order.getNote());
     }
 
 }

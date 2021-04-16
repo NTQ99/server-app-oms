@@ -42,8 +42,10 @@ public class CustomerController {
         if (allCustomers.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } else {
-            return new ResponseEntity<>(new PageResponseModel<>(allCustomers, pageCustomers.getNumber(),
-                    pageCustomers.getTotalElements(), pageCustomers.getTotalPages()), HttpStatus.OK);
+            return new ResponseEntity<>(
+                    new PageResponseModel<>(allCustomers, pageCustomers.getNumber(), pageCustomers.getTotalPages(),
+                            pageCustomers.getSize(), pageCustomers.getTotalElements()),
+                    HttpStatus.OK);
         }
 
     }

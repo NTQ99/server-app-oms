@@ -41,7 +41,8 @@ public class ProductController {
 
         if (!allProducts.isEmpty()) {
             return new ResponseEntity<>(new PageResponseModel<>(allProducts, pageProducts.getNumber(),
-                    pageProducts.getTotalElements(), pageProducts.getTotalPages()), HttpStatus.OK);
+                    pageProducts.getTotalPages(), pageProducts.getSize(), pageProducts.getTotalElements()),
+                    HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }

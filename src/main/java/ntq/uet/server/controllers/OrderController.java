@@ -8,10 +8,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 import ntq.uet.server.exceptions.ResourceNotFoundException;
+import ntq.uet.server.models.PageRequestModel;
 import ntq.uet.server.models.PageResponseModel;
 import ntq.uet.server.models.order.OrderModel;
 import ntq.uet.server.services.OrderService;
@@ -23,29 +26,27 @@ public class OrderController {
     @Autowired
     private OrderService service;
 
-    @GetMapping
-    public ResponseEntity<PageResponseModel<OrderModel>> getAll(@RequestParam(required = false) String searchValue,
-            @RequestParam(required = false) String status, @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+    @PostMapping(consumes = { MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            MediaType.MULTIPART_FORM_DATA_VALUE }, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<PageResponseModel<OrderModel>> getAll(
+            @RequestBody MultiValueMap<String, String> requestObject) {
 
+        PageRequestModel request = PageRequestModel.getObject(requestObject);
         List<OrderModel> allOrders = new ArrayList<>();
-        Pageable paging = PageRequest.of(page, size);
+        Pageable paging = PageRequest.of(request.getPagination().getPage() - 1, request.getPagination().getPerpage());
         Page<OrderModel> pageOrders;
 
-        if (searchValue == null && status == null) {
+        if (request.getQuery().getGeneralSearch() == "" && request.getQuery().getStatus() == "") {
             pageOrders = service.getAllOrders(paging);
         } else {
-            pageOrders = service.getAllOrdersCondition(searchValue, status, paging);
+            pageOrders = service.getAllOrdersCondition(request.getQuery().getGeneralSearch(),
+                    request.getQuery().getStatus(), paging);
         }
 
         allOrders = pageOrders.getContent();
 
-        if (!allOrders.isEmpty()) {
-            return new ResponseEntity<>(new PageResponseModel<>(allOrders, pageOrders.getNumber(),
-            pageOrders.getTotalElements(), pageOrders.getTotalPages()), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
+        return new ResponseEntity<>(new PageResponseModel<>(allOrders, pageOrders.getNumber(),
+                pageOrders.getTotalPages(), pageOrders.getSize(), pageOrders.getTotalElements()), HttpStatus.OK);
 
     }
 

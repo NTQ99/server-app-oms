@@ -1,7 +1,5 @@
 package ntq.uet.server.services;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,11 +29,11 @@ public class OrderService {
         orderData.setCustomerCode(customerData.getCustomerCode());
 
         ProductModel product = new ProductModel();
+        product.setProductName(orderData.getProductName());
         ProductModel productData = productService.getProductByName(product.getProductName());
         if (productData == null) {
             productData = productService.createProduct(product);
         }
-        product.setProductName(orderData.getProductName());
         orderData.setProductCode(productData.getProductCode());
 
         return orderRepository.save(orderData);
@@ -77,22 +75,22 @@ public class OrderService {
         return orderRepository.findAll(paging);
     }
 
-    public Page<OrderModel> getAllOrdersCondition(String searchValue, String status, Pageable paging) {
-        if (searchValue == null) {
+    public Page<OrderModel> getAllOrdersCondition(String generalSearch, String status, Pageable paging) {
+        if (generalSearch == "") {
             return this.getOrderByStatus(status, paging);
         } else {
             try {
-                Long.parseLong(searchValue);
-                if (status == null) {
-                    return this.findOrderByCustomerPhone(searchValue, paging);
+                Long.parseLong(generalSearch);
+                if (status == "") {
+                    return this.findOrderByCustomerPhone(generalSearch, paging);
                 } else {
-                    return this.findOrderByCustomerPhoneAndStatus(searchValue, status, paging);
+                    return this.findOrderByCustomerPhoneAndStatus(generalSearch, status, paging);
                 }
             } catch (NumberFormatException nfe) {
-                if (status == null) {
-                    return this.findOrderByCustomerName(searchValue, paging);
+                if (status == "") {
+                    return this.findOrderByCustomerName(generalSearch, paging);
                 } else {
-                    return this.findOrderByCustomerNameAndStatus(searchValue, status, paging);
+                    return this.findOrderByCustomerNameAndStatus(generalSearch, status, paging);
                 }
             }
             
@@ -139,6 +137,7 @@ public class OrderService {
         orderData.setQuantity(newOrderModelData.getQuantity());
         orderData.setShipFee(newOrderModelData.getShipFee());
         orderData.setStatus(newOrderModelData.getStatus());
+        orderData.setNote(newOrderModelData.getNote());
 
         return orderRepository.save(orderData);
     }
