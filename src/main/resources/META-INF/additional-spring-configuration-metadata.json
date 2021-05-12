@@ -1,0 +1,12 @@
+{"properties": [
+  {
+    "name": "ntq.uet.jwtSecret",
+    "type": "java.lang.String",
+    "description": "JWT Secret Key"
+  },
+  {
+    "name": "ntq.uet.jwtExpirationMs",
+    "type": "java.lang.Integer",
+    "description": "JWT Expiration Ms"
+  }
+]}

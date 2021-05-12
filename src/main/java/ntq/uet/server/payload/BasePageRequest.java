@@ -1,8 +1,8 @@
-package ntq.uet.server.models;
+package ntq.uet.server.payload;
 
 import org.springframework.util.MultiValueMap;
 
-public class PageRequestModel {
+public class BasePageRequest {
 
     public static class Pagination {
         private int page = 1;
@@ -36,9 +36,18 @@ public class PageRequestModel {
     public static class Query {
         private String status;
         private String generalSearch;
+        private String customerCode;
 
         public String getStatus() {
             return status;
+        }
+
+        public String getCustomerCode() {
+            return customerCode;
+        }
+
+        public void setCustomerCode(String customerCode) {
+            this.customerCode = customerCode;
         }
 
         public String getGeneralSearch() {
@@ -56,9 +65,10 @@ public class PageRequestModel {
         public Query() {
         }
 
-        public Query(String status, String generalSearch) {
+        public Query(String status, String generalSearch, String customerCode) {
             this.status = status;
             this.generalSearch = generalSearch;
+            this.customerCode = customerCode;
         }
     }
 
@@ -119,25 +129,27 @@ public class PageRequestModel {
         this.pagination = pagination;
     }
 
-    public PageRequestModel() {
+    public BasePageRequest() {
     }
 
-    public PageRequestModel(Pagination pagination, Sort sort, Query query) {
+    public BasePageRequest(Pagination pagination, Sort sort, Query query) {
         this.setPagination(pagination);
         this.setSort(sort);
         this.setQuery(query);
     }
 
-    public static PageRequestModel getObject(MultiValueMap<String, String> object) {
+    public static BasePageRequest getObject(MultiValueMap<String, String> object) {
         object.add("sort[sort]", "");
         object.add("sort[field]", "");
         object.add("query[status]", "");
         object.add("query[generalSearch]", "");
+        object.add("query[customerCode]", "");
         Pagination pagination = new Pagination(Integer.parseInt(object.get("pagination[page]").get(0)),
                 Integer.parseInt(object.get("pagination[perpage]").get(0)));
         Sort sort = new Sort(object.getFirst("sort[sort]"), object.getFirst("sort[field]"));
-        Query query = new Query(object.getFirst("query[status]"), object.getFirst("query[generalSearch]"));
-        return new PageRequestModel(pagination, sort, query);
+        Query query = new Query(object.getFirst("query[status]"), object.getFirst("query[generalSearch]"),
+                object.getFirst("query[customerCode]"));
+        return new BasePageRequest(pagination, sort, query);
     }
 
 }

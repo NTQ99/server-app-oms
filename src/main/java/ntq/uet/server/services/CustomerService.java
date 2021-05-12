@@ -5,7 +5,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import ntq.uet.server.models.customer.CustomerModel;
+import ntq.uet.server.models.Address;
+import ntq.uet.server.models.customer.Customer;
 import ntq.uet.server.repositories.CustomerRepository;
 
 @Service("customerService")
@@ -13,32 +14,32 @@ public class CustomerService {
     @Autowired
     private CustomerRepository customerRepository;
 
-    public CustomerModel createCustomer(CustomerModel customer) {
+    public Customer createCustomer(Customer customer) {
         return customerRepository.save(customer);
     }
 
-    public CustomerModel getCustomerById(String id) {
+    public Customer getCustomerById(String id) {
         return customerRepository.findById(id).orElse(null);
     }
 
-    public CustomerModel getCustomerByCode(String code) {
+    public Customer getCustomerByCode(String code) {
         return customerRepository.findByCustomerCode(code);
     }
 
-    public CustomerModel getCustomerByPhone(String phone){
+    public Customer getCustomerByPhone(String phone){
         return customerRepository.findOneByCustomerPhone(phone);
     }
 
-    public Page<CustomerModel> findCustomerByPhone(String phone, Pageable paging) {
+    public Page<Customer> findCustomerByPhone(String phone, Pageable paging) {
         return customerRepository.findByCustomerPhoneContaining(phone, paging);
     }
 
-    public Page<CustomerModel> getAllCustomers(Pageable paging) {
+    public Page<Customer> getAllCustomers(Pageable paging) {
         return customerRepository.findAll(paging);
     }
 
-    public CustomerModel updateCustomer(String id, CustomerModel newCustomerData) {
-        CustomerModel customerData = customerRepository.findById(id).orElse(null);
+    public Customer updateCustomer(String id, Customer newCustomerData) {
+        Customer customerData = customerRepository.findById(id).orElse(null);
         if (customerData == null) {
             return null;
         } else {
@@ -48,8 +49,8 @@ public class CustomerService {
         return customerRepository.save(customerData);
     }
 
-    public CustomerModel addCustomerAddress(String id, CustomerModel.Address newAddress) {
-        CustomerModel customerData = customerRepository.findById(id).orElse(null);
+    public Customer addCustomerAddress(String id, Address newAddress) {
+        Customer customerData = customerRepository.findById(id).orElse(null);
         if (customerData == null) {
             return null;
         } else {
@@ -58,8 +59,8 @@ public class CustomerService {
         return customerRepository.save(customerData);
     }
 
-    public CustomerModel updateCustomerAddress(String id, CustomerModel.Address currAddress, CustomerModel.Address newAddress) {
-        CustomerModel customerData = customerRepository.findById(id).orElse(null);
+    public Customer updateCustomerAddress(String id, Address currAddress, Address newAddress) {
+        Customer customerData = customerRepository.findById(id).orElse(null);
         if (customerData == null) {
             return null;
         } else {
@@ -68,8 +69,8 @@ public class CustomerService {
         return customerRepository.save(customerData);
     }
 
-    public CustomerModel removeCustomerAddress(String id, CustomerModel.Address address) {
-        CustomerModel customerData = customerRepository.findById(id).orElse(null);
+    public Customer removeCustomerAddress(String id, Address address) {
+        Customer customerData = customerRepository.findById(id).orElse(null);
         if (customerData == null) {
             return null;
         } else {

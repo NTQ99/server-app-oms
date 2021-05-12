@@ -7,28 +7,31 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "products")
-public class ProductModel {
+public class Product {
     @Id
     private String id;
 
     private String productCode;
-    private String productName="";
-    private String productDetail="";
+    private String productName = "";
+    private String productDetail = "";
     private List<String> productPhotos = new ArrayList<>();
-    private Double retailPrice=0.0;
-    private Double wholesalePrice=0.0;
-    private Double promotion=0.0;
+    private Double capitalPrice = 0.0;
+    private Double retailPrice = 0.0;
+    private Double wholesalePrice = 0.0;
+    private Double promotion = 0.0;
+    private Double weight = 0.0;
     private long createdAt;
 
-    public ProductModel(){
+    public Product() {
         long now = System.currentTimeMillis();
-        this.setProductCode(String.valueOf(now));
+        this.setProductCode(String.format("%07d", now % 1046527));
         this.setCreatedAt(now);
     };
-    public ProductModel(String productName, String productDetail, List<String> productPhotos, Double retailPrice,
+
+    public Product(String productName, String productDetail, List<String> productPhotos, Double retailPrice,
             Double wholesalePrice, Double promotion) {
         long now = System.currentTimeMillis();
-        this.setProductCode(String.valueOf(now));
+        this.setProductCode(String.format("%07d", now % 1046527));
         this.setCreatedAt(now);
         this.setProductName(productName);
         this.setProductDetail(productDetail);
@@ -45,6 +48,7 @@ public class ProductModel {
     public long getCreatedAt() {
         return createdAt;
     }
+
     public void setCreatedAt(long createdAt) {
         this.createdAt = createdAt;
     }
@@ -52,6 +56,7 @@ public class ProductModel {
     public Double getPromotion() {
         return promotion;
     }
+
     public void setPromotion(Double promotion) {
         this.promotion = promotion;
     }
@@ -59,6 +64,7 @@ public class ProductModel {
     public Double getWholesalePrice() {
         return wholesalePrice;
     }
+
     public void setWholesalePrice(Double wholesalePrice) {
         this.wholesalePrice = wholesalePrice;
     }
@@ -66,6 +72,7 @@ public class ProductModel {
     public Double getRetailPrice() {
         return retailPrice;
     }
+
     public void setRetailPrice(Double retailPrice) {
         this.retailPrice = retailPrice;
     }
@@ -73,13 +80,15 @@ public class ProductModel {
     public List<String> getProductPhotos() {
         return productPhotos;
     }
-    public void setProductPhotos(List<String>productPhotos) {
+
+    public void setProductPhotos(List<String> productPhotos) {
         this.productPhotos = productPhotos;
     }
 
     public String getProductDetail() {
         return productDetail;
     }
+
     public void setProductDetail(String productDetail) {
         this.productDetail = productDetail;
     }
@@ -87,6 +96,7 @@ public class ProductModel {
     public String getProductName() {
         return productName;
     }
+
     public void setProductName(String productName) {
         this.productName = productName;
     }
@@ -94,19 +104,25 @@ public class ProductModel {
     public String getProductCode() {
         return productCode;
     }
+
     public void setProductCode(String productCode) {
         this.productCode = productCode;
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
 
-        ProductModel product = (ProductModel) o;
+        Product product = (Product) o;
 
-        return this.getProductName().equals(product.getProductName()) && this.getProductDetail().equals(product.getProductDetail())
-            && this.getProductPhotos().equals(product.getProductPhotos()) && this.getPromotion().equals(product.getPromotion())
-            && this.getRetailPrice().equals(product.getRetailPrice()) && this.getWholesalePrice().equals(product.getWholesalePrice());
+        return this.getProductName().equals(product.getProductName())
+                && this.getProductDetail().equals(product.getProductDetail())
+                && this.getProductPhotos().equals(product.getProductPhotos())
+                && this.getPromotion().equals(product.getPromotion())
+                && this.getRetailPrice().equals(product.getRetailPrice())
+                && this.getWholesalePrice().equals(product.getWholesalePrice());
     }
 }

@@ -14,9 +14,9 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 import ntq.uet.server.exceptions.ResourceNotFoundException;
-import ntq.uet.server.models.PageRequestModel;
-import ntq.uet.server.models.PageResponseModel;
-import ntq.uet.server.models.order.OrderModel;
+import ntq.uet.server.models.order.Order;
+import ntq.uet.server.payload.BasePageRequest;
+import ntq.uet.server.payload.BasePageResponse;
 import ntq.uet.server.services.OrderService;
 
 @RestController
@@ -28,16 +28,20 @@ public class OrderController {
 
     @PostMapping(consumes = { MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             MediaType.MULTIPART_FORM_DATA_VALUE }, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<PageResponseModel<OrderModel>> getAll(
+    public ResponseEntity<BasePageResponse<List<Order>>> getAll(
             @RequestBody MultiValueMap<String, String> requestObject) {
 
-        PageRequestModel request = PageRequestModel.getObject(requestObject);
-        List<OrderModel> allOrders = new ArrayList<>();
+        BasePageRequest request = BasePageRequest.getObject(requestObject);
+        List<Order> allOrders = new ArrayList<>();
         Pageable paging = PageRequest.of(request.getPagination().getPage() - 1, request.getPagination().getPerpage());
-        Page<OrderModel> pageOrders;
+        Page<Order> pageOrders;
 
         if (request.getQuery().getGeneralSearch() == "" && request.getQuery().getStatus() == "") {
-            pageOrders = service.getAllOrders(paging);
+            if (request.getQuery().getCustomerCode() == "") {
+                pageOrders = service.getAllOrders(paging);
+            } else {
+                pageOrders = service.getOrdersByCustomerCode(request.getQuery().getCustomerCode(), paging);
+            }
         } else {
             pageOrders = service.getAllOrdersCondition(request.getQuery().getGeneralSearch(),
                     request.getQuery().getStatus(), paging);
@@ -45,15 +49,15 @@ public class OrderController {
 
         allOrders = pageOrders.getContent();
 
-        return new ResponseEntity<>(new PageResponseModel<>(allOrders, pageOrders.getNumber(),
+        return new ResponseEntity<>(new BasePageResponse<>(allOrders, pageOrders.getNumber(),
                 pageOrders.getTotalPages(), pageOrders.getSize(), pageOrders.getTotalElements()), HttpStatus.OK);
 
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<OrderModel> getById(@PathVariable("id") String id) {
+    public ResponseEntity<Order> getById(@PathVariable("id") String id) {
 
-        OrderModel order = service.getOrderById(id);
+        Order order = service.getOrderById(id);
 
         if (order != null) {
             return new ResponseEntity<>(order, HttpStatus.OK);
@@ -64,17 +68,17 @@ public class OrderController {
     }
 
     @PostMapping
-    public ResponseEntity<OrderModel> create(@RequestBody OrderModel order) {
+    public ResponseEntity<Order> create(@RequestBody Order order) {
 
-        OrderModel newOrder = service.createOrder(order);
+        Order newOrder = service.createOrder(order);
         return new ResponseEntity<>(newOrder, HttpStatus.CREATED);
 
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<OrderModel> update(@PathVariable("id") String id, @RequestBody OrderModel newOrderData) {
+    public ResponseEntity<Order> update(@PathVariable("id") String id, @RequestBody Order newOrderData) {
 
-        OrderModel currOrderData = service.getOrderById(id);
+        Order currOrderData = service.getOrderById(id);
         if (currOrderData == null) {
             throw new ResourceNotFoundException("Not found Order for id " + id);
         }
@@ -82,7 +86,7 @@ public class OrderController {
         if (currOrderData.equals(newOrderData)) {
             return new ResponseEntity<>(currOrderData, HttpStatus.NOT_MODIFIED);
         }
-        OrderModel newOrderModified = service.updateOrder(id, newOrderData);
+        Order newOrderModified = service.updateOrder(id, newOrderData);
         return new ResponseEntity<>(newOrderModified, HttpStatus.OK);
 
     }

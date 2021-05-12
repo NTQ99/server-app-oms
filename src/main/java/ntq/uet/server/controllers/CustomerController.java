@@ -8,12 +8,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 import ntq.uet.server.exceptions.ResourceNotFoundException;
-import ntq.uet.server.models.PageResponseModel;
-import ntq.uet.server.models.customer.CustomerModel;
+import ntq.uet.server.models.Address;
+import ntq.uet.server.models.customer.Customer;
+import ntq.uet.server.payload.BasePageRequest;
+import ntq.uet.server.payload.BasePageResponse;
 import ntq.uet.server.services.CustomerService;
 
 @RestController
@@ -23,37 +27,34 @@ public class CustomerController {
     @Autowired
     private CustomerService service;
 
-    @GetMapping
-    public ResponseEntity<PageResponseModel<CustomerModel>> getAll(@RequestParam(required = false) String customerPhone,
-            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+    @PostMapping(consumes = { MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            MediaType.MULTIPART_FORM_DATA_VALUE }, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BasePageResponse<List<Customer>>> getAll(
+            @RequestBody MultiValueMap<String, String> requestObject) {
 
-        List<CustomerModel> allCustomers = new ArrayList<>();
-        Pageable paging = PageRequest.of(page, size);
-        Page<CustomerModel> pageCustomers;
+        BasePageRequest request = BasePageRequest.getObject(requestObject);
+        List<Customer> allCustomers = new ArrayList<>();
+        Pageable paging = PageRequest.of(request.getPagination().getPage() - 1, request.getPagination().getPerpage());
+        Page<Customer> pageCustomers;
 
-        if (customerPhone == null) {
+        if (request.getQuery().getGeneralSearch() == "") {
             pageCustomers = service.getAllCustomers(paging);
         } else {
-            pageCustomers = service.findCustomerByPhone(customerPhone, paging);
+            pageCustomers = service.findCustomerByPhone(request.getQuery().getGeneralSearch(), paging);
         }
 
         allCustomers = pageCustomers.getContent();
-
-        if (allCustomers.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } else {
-            return new ResponseEntity<>(
-                    new PageResponseModel<>(allCustomers, pageCustomers.getNumber(), pageCustomers.getTotalPages(),
-                            pageCustomers.getSize(), pageCustomers.getTotalElements()),
-                    HttpStatus.OK);
-        }
+        
+        return new ResponseEntity<>(new BasePageResponse<>(allCustomers, pageCustomers.getNumber(),
+                pageCustomers.getTotalPages(), pageCustomers.getSize(), pageCustomers.getTotalElements()),
+                HttpStatus.OK);
 
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<CustomerModel> getById(@PathVariable("id") String id) {
+    public ResponseEntity<Customer> getById(@PathVariable("id") String id) {
 
-        CustomerModel customer = service.getCustomerById(id);
+        Customer customer = service.getCustomerById(id);
 
         if (customer != null) {
             return new ResponseEntity<>(customer, HttpStatus.OK);
@@ -64,9 +65,9 @@ public class CustomerController {
     }
 
     @PostMapping
-    public ResponseEntity<CustomerModel> create(@RequestBody CustomerModel customerData) {
+    public ResponseEntity<Customer> create(@RequestBody Customer customerData) {
 
-        CustomerModel tmp = service.getCustomerByPhone(customerData.getCustomerPhone());
+        Customer tmp = service.getCustomerByPhone(customerData.getCustomerPhone());
         if (tmp == null) {
             return new ResponseEntity<>(service.createCustomer(customerData), HttpStatus.CREATED);
         } else {
@@ -76,10 +77,10 @@ public class CustomerController {
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<CustomerModel> update(@PathVariable("id") String id,
-            @RequestBody CustomerModel newCustomerData) {
+    public ResponseEntity<Customer> update(@PathVariable("id") String id,
+            @RequestBody Customer newCustomerData) {
 
-        CustomerModel currCustomerData = service.getCustomerById(id);
+        Customer currCustomerData = service.getCustomerById(id);
         if (currCustomerData == null) {
             throw new ResourceNotFoundException("Not found Customer with id = " + id);
         }
@@ -87,16 +88,16 @@ public class CustomerController {
         if (currCustomerData.equals(newCustomerData)) {
             return new ResponseEntity<>(currCustomerData, HttpStatus.NOT_MODIFIED);
         }
-        CustomerModel newCustomerModified = service.updateCustomer(id, newCustomerData);
+        Customer newCustomerModified = service.updateCustomer(id, newCustomerData);
         return new ResponseEntity<>(newCustomerModified, HttpStatus.OK);
 
     }
 
     @PutMapping("{id}/address/add")
-    public ResponseEntity<CustomerModel> addAddress(@PathVariable("id") String id,
-            @RequestBody CustomerModel.Address newAddress) {
+    public ResponseEntity<Customer> addAddress(@PathVariable("id") String id,
+            @RequestBody Address newAddress) {
 
-        CustomerModel newCustomerModified = service.addCustomerAddress(id, newAddress);
+        Customer newCustomerModified = service.addCustomerAddress(id, newAddress);
         if (newCustomerModified != null) {
             return new ResponseEntity<>(newCustomerModified, HttpStatus.OK);
         } else {
@@ -106,10 +107,10 @@ public class CustomerController {
     }
 
     @PutMapping("{id}/address/update")
-    public ResponseEntity<CustomerModel> updateAddress(@PathVariable("id") String id,
-            @RequestBody CustomerModel.Address[] address) {
+    public ResponseEntity<Customer> updateAddress(@PathVariable("id") String id,
+            @RequestBody Address[] address) {
 
-        CustomerModel newCustomerModified = service.updateCustomerAddress(id, address[0], address[1]);
+        Customer newCustomerModified = service.updateCustomerAddress(id, address[0], address[1]);
         if (newCustomerModified != null) {
             return new ResponseEntity<>(newCustomerModified, HttpStatus.OK);
         } else {
@@ -119,10 +120,10 @@ public class CustomerController {
     }
 
     @PutMapping("{id}/address/delete")
-    public ResponseEntity<CustomerModel> removeAddress(@PathVariable("id") String id,
-            @RequestBody CustomerModel.Address address) {
+    public ResponseEntity<Customer> removeAddress(@PathVariable("id") String id,
+            @RequestBody Address address) {
 
-        CustomerModel newCustomerModified = service.removeCustomerAddress(id, address);
+        Customer newCustomerModified = service.removeCustomerAddress(id, address);
         if (newCustomerModified != null) {
             return new ResponseEntity<>(newCustomerModified, HttpStatus.OK);
         } else {

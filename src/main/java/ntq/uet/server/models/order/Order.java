@@ -3,12 +3,12 @@ package ntq.uet.server.models.order;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import ntq.uet.server.models.customer.CustomerModel;
+import ntq.uet.server.models.Address;
 
 @Document(collection = "orders")
-public class OrderModel {
+public class Order {
 
-    enum Status {
+    public enum Status {
         wait_confirm, // chờ xác nhận từ người mua
         not_responded, // người mua không phản hồi
         canceled, // hủy đơn
@@ -28,15 +28,18 @@ public class OrderModel {
     private String productName = "";
     private String deliveryUnit = "";
     private String note = "";
-    private CustomerModel.Address deliveryTo = new CustomerModel.Address();
+    private Address deliveryTo = new Address();
     private Double shipFee = 0.0;
+    private Double totalPrice = 0.0;
+    private Double codAmount = 0.0;
     private Status status = Status.wait_confirm;
     private int quantity = 0;
     private long createdAt;
+    private long lastModifiedAt;
 
-    public OrderModel() {
+    public Order() {
         long now = System.currentTimeMillis();
-        this.setOrderCode(String.valueOf(now));
+        this.setOrderCode(String.format("%07d", now % 1046527));
         this.setCreatedAt(now);
     }
 
@@ -48,10 +51,10 @@ public class OrderModel {
         this.note = note;
     }
 
-    public OrderModel(String customerCode, String customerName, String customerPhone, String productCode,
-            String productName, String deliveryUnit, CustomerModel.Address deliveryTo, int quantity, String note) {
+    public Order(String customerCode, String customerName, String customerPhone, String productCode,
+            String productName, String deliveryUnit, Address deliveryTo, int quantity, String note) {
         long now = System.currentTimeMillis();
-        this.setOrderCode(String.valueOf(now));
+        this.setOrderCode(String.format("%07d", now % 1046527));
         this.setCreatedAt(now);
         this.setCustomerCode(customerCode);
         this.setCustomerName(customerName);
@@ -92,11 +95,11 @@ public class OrderModel {
         this.customerName = customerName;
     }
 
-    public CustomerModel.Address getDeliveryTo() {
+    public Address getDeliveryTo() {
         return deliveryTo;
     }
 
-    public void setDeliveryTo(CustomerModel.Address deliveryTo) {
+    public void setDeliveryTo(Address deliveryTo) {
         this.deliveryTo = deliveryTo;
     }
 
@@ -171,7 +174,7 @@ public class OrderModel {
         if (o == null || getClass() != o.getClass())
             return false;
 
-        OrderModel order = (OrderModel) o;
+        Order order = (Order) o;
 
         return this.getCustomerCode().equals(order.getCustomerCode())
                 && this.getProductCode().equals(order.getProductCode())

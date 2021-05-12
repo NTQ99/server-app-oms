@@ -5,9 +5,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import ntq.uet.server.models.customer.CustomerModel;
-import ntq.uet.server.models.order.OrderModel;
-import ntq.uet.server.models.product.ProductModel;
+import ntq.uet.server.models.customer.Customer;
+import ntq.uet.server.models.order.Order;
+import ntq.uet.server.models.product.Product;
 import ntq.uet.server.repositories.OrderRepository;
 
 @Service("orderService")
@@ -19,18 +19,18 @@ public class OrderService {
     @Autowired
     private ProductService productService;
 
-    public OrderModel createOrder(OrderModel orderData) {
-        CustomerModel customer = new CustomerModel(orderData.getCustomerName(), orderData.getCustomerPhone());
-        CustomerModel customerData = customerService.getCustomerByPhone(customer.getCustomerPhone());
+    public Order createOrder(Order orderData) {
+        Customer customer = new Customer(orderData.getCustomerName(), orderData.getCustomerPhone());
+        Customer customerData = customerService.getCustomerByPhone(customer.getCustomerPhone());
         if (customerData == null) {
             customerData = customerService.createCustomer(customer);
         }
         customerService.addCustomerAddress(customerData.getId(), orderData.getDeliveryTo());
         orderData.setCustomerCode(customerData.getCustomerCode());
 
-        ProductModel product = new ProductModel();
+        Product product = new Product();
         product.setProductName(orderData.getProductName());
-        ProductModel productData = productService.getProductByName(product.getProductName());
+        Product productData = productService.getProductByName(product.getProductName());
         if (productData == null) {
             productData = productService.createProduct(product);
         }
@@ -39,43 +39,47 @@ public class OrderService {
         return orderRepository.save(orderData);
     }
 
-    public OrderModel getOrderById(String id) {
+    public Order getOrderById(String id) {
         return orderRepository.findById(id).orElse(null);
     }
 
-    public OrderModel getOrderByCode(String code) {
+    public Order getOrderByCode(String code) {
         return orderRepository.findByOrderCode(code);
     }
 
-    public Page<OrderModel> getOrderByCreatedDateBetween(String createdDateFrom, String createdDateTo, Pageable paging) {
+    public Page<Order> getOrdersByCustomerCode(String customerCode, Pageable paging) {
+        return orderRepository.findByCustomerCode(customerCode, paging);
+    }
+
+    public Page<Order> getOrderByCreatedDateBetween(String createdDateFrom, String createdDateTo, Pageable paging) {
         return orderRepository.findByCreatedAtBetween(createdDateFrom, createdDateTo, paging);
     }
 
-    public Page<OrderModel> getOrderByStatus(String status, Pageable paging) {
+    public Page<Order> getOrderByStatus(String status, Pageable paging) {
         return orderRepository.findByStatus(status, paging);
     }
 
-    public Page<OrderModel> findOrderByCustomerName(String name, Pageable paging) {
+    public Page<Order> findOrderByCustomerName(String name, Pageable paging) {
         return orderRepository.findByCustomerNameContainingIgnoreCase(name, paging);
     }
 
-    public Page<OrderModel> findOrderByCustomerPhone(String phone, Pageable paging) {
+    public Page<Order> findOrderByCustomerPhone(String phone, Pageable paging) {
         return orderRepository.findByCustomerPhoneContaining(phone, paging);
     }
 
-    public Page<OrderModel> findOrderByCustomerNameAndStatus(String name, String status, Pageable paging) {
+    public Page<Order> findOrderByCustomerNameAndStatus(String name, String status, Pageable paging) {
         return orderRepository.findByCustomerNameContainingIgnoreCaseAndStatus(name, status, paging);
     }
 
-    public Page<OrderModel> findOrderByCustomerPhoneAndStatus(String phone, String status, Pageable paging) {
+    public Page<Order> findOrderByCustomerPhoneAndStatus(String phone, String status, Pageable paging) {
         return orderRepository.findByCustomerPhoneContainingAndStatus(phone, status, paging);
     }
 
-    public Page<OrderModel> getAllOrders(Pageable paging) {
+    public Page<Order> getAllOrders(Pageable paging) {
         return orderRepository.findAll(paging);
     }
 
-    public Page<OrderModel> getAllOrdersCondition(String generalSearch, String status, Pageable paging) {
+    public Page<Order> getAllOrdersCondition(String generalSearch, String status, Pageable paging) {
         if (generalSearch == "") {
             return this.getOrderByStatus(status, paging);
         } else {
@@ -97,16 +101,16 @@ public class OrderService {
         }
     }
 
-    public OrderModel updateOrder(String id, OrderModel newOrderModelData) {
-        OrderModel orderData = orderRepository.findById(id).orElse(null);
+    public Order updateOrder(String id, Order newOrderModelData) {
+        Order orderData = orderRepository.findById(id).orElse(null);
         if (orderData == null) {
             return null;
         }
 
         if (!orderData.getCustomerPhone().equals(newOrderModelData.getCustomerPhone())) {
-            CustomerModel newCustomerData = customerService.getCustomerByPhone(newOrderModelData.getCustomerPhone());
+            Customer newCustomerData = customerService.getCustomerByPhone(newOrderModelData.getCustomerPhone());
             if (newCustomerData == null) {
-                newCustomerData = new CustomerModel(newOrderModelData.getCustomerName(), newOrderModelData.getCustomerPhone());
+                newCustomerData = new Customer(newOrderModelData.getCustomerName(), newOrderModelData.getCustomerPhone());
                 orderData.setCustomerCode(customerService.createCustomer(newCustomerData).getCustomerCode());
             } else {
                 orderData.setCustomerCode(newCustomerData.getCustomerCode());
@@ -116,15 +120,15 @@ public class OrderService {
         }
 
         if (!orderData.getDeliveryTo().equals(newOrderModelData.getDeliveryTo())) {
-            CustomerModel customerData = customerService.getCustomerByCode(orderData.getCustomerCode());
+            Customer customerData = customerService.getCustomerByCode(orderData.getCustomerCode());
             customerService.addCustomerAddress(customerData.getId(), newOrderModelData.getDeliveryTo());
             orderData.setDeliveryTo(newOrderModelData.getDeliveryTo());
         }
 
         if (!orderData.getProductName().equals(newOrderModelData.getProductName())) {
-            ProductModel newProductData = productService.getProductByName(newOrderModelData.getProductName());
+            Product newProductData = productService.getProductByName(newOrderModelData.getProductName());
             if (newProductData == null) {
-                newProductData = new ProductModel();
+                newProductData = new Product();
                 newProductData.setProductName(newOrderModelData.getProductName());
                 orderData.setProductCode(productService.createProduct(newProductData).getProductCode());
             } else {

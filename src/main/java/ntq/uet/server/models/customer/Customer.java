@@ -8,70 +8,12 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import ntq.uet.server.models.Address;
+
 // customer model
 @Document(collection = "customers")
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class CustomerModel {
-
-    // address struct
-    public static class Address {
-        private String ward="";
-        private String district="";
-        private String province="";
-        // address detail
-        private String detail="";
-
-        public Address() {}
-        
-        public Address(String ward, String district, String province, String detail) {
-            this.setDetail(detail);
-            this.setDistrict(district);
-            this.setProvince(province);
-            this.setWard(ward);
-        };
-
-        public String getDetail() {
-            return detail;
-        }
-        public void setDetail(String detail) {
-            this.detail = detail;
-        }
-
-        public String getProvince() {
-            return province;
-        }
-
-        public void setProvince(String province) {
-            this.province = province;
-        }
-
-        public String getDistrict() {
-            return district;
-        }
-
-        public void setDistrict(String district) {
-            this.district = district;
-        }
-
-        public String getWard() {
-            return ward;
-        }
-
-        public void setWard(String ward) {
-            this.ward = ward;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            Address address = (Address) o;
-
-            return this.ward.equals(address.ward) && this.district.equals(address.district)
-                    && this.province.equals(address.province) && this.detail.equals(address.detail);
-        }
-    }
+public class Customer {
 
     @Id
     private String id;
@@ -82,15 +24,15 @@ public class CustomerModel {
     private String customerPhone="";
     private long createdAt;
 
-    public CustomerModel() {
+    public Customer() {
         long now = System.currentTimeMillis();
-        this.setCustomerCode(String.valueOf(now));
+        this.setCustomerCode(String.format("%07d", now % 1046527));
         this.setCreatedAt(now);
     };
 
-    public CustomerModel(String customerName, String customerPhone) {
+    public Customer(String customerName, String customerPhone) {
         long now = System.currentTimeMillis();
-        this.setCustomerCode(String.valueOf(System.currentTimeMillis()));
+        this.setCustomerCode(String.format("%07d", now % 1046527));
         this.setCreatedAt(now);
         this.setCustomerName(customerName);
         this.setCustomerPhone(customerPhone);
@@ -156,7 +98,7 @@ public class CustomerModel {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        CustomerModel customer = (CustomerModel) o;
+        Customer customer = (Customer) o;
 
         return this.getCustomerName().equals(customer.getCustomerName()) && this.getCustomerPhone().equals(customer.getCustomerPhone());
     }

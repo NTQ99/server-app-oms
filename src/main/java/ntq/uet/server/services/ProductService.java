@@ -5,7 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import ntq.uet.server.models.product.ProductModel;
+import ntq.uet.server.models.product.Product;
 import ntq.uet.server.repositories.ProductRepository;
 
 @Service("productService")
@@ -13,32 +13,32 @@ public class ProductService {
     @Autowired
     private ProductRepository productRepository;
 
-    public ProductModel createProduct(ProductModel product) {
+    public Product createProduct(Product product) {
         return productRepository.save(product);
     }
 
-    public ProductModel getProductById(String id) {
+    public Product getProductById(String id) {
         return productRepository.findById(id).orElse(null);
     }
     
-    public ProductModel getProductByCode(String code) {
+    public Product getProductByCode(String code) {
         return productRepository.findByProductCode(code);
     }
 
-    public ProductModel getProductByName(String name) {
+    public Product getProductByName(String name) {
         return productRepository.findOneByProductName(name);
     }
 
-    public Page<ProductModel> findProductByName(String name, Pageable paging) {
+    public Page<Product> findProductByName(String name, Pageable paging) {
         return productRepository.findByProductNameContainingIgnoreCase(name, paging);
     }
 
-    public Page<ProductModel> getAllProducts(Pageable paging) {
+    public Page<Product> getAllProducts(Pageable paging) {
         return productRepository.findAll(paging);
     }
 
-    public ProductModel updateProduct(String id, ProductModel newProductData) {
-        ProductModel productData = productRepository.findById(id).orElse(null);
+    public Product updateProduct(String id, Product newProductData) {
+        Product productData = productRepository.findById(id).orElse(null);
         if (productData == null) {
             return null;
         } else {

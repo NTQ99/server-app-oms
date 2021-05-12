@@ -4,11 +4,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
-import ntq.uet.server.models.customer.CustomerModel;
+import ntq.uet.server.models.customer.Customer;
 
-public interface CustomerRepository extends MongoRepository<CustomerModel, String> {
-    CustomerModel findByCustomerCode(String customerCode);
-    Page<CustomerModel> findByCustomerNameContainingIgnoreCase(String customerName, Pageable paging);
-    Page<CustomerModel> findByCustomerPhoneContaining(String customerPhone, Pageable paging);
-    CustomerModel findOneByCustomerPhone(String customerPhone);
+public interface CustomerRepository extends MongoRepository<Customer, String> {
+    Customer findByCustomerCode(String customerCode);
+    Page<Customer> findByCustomerNameContainingIgnoreCase(String customerName, Pageable paging);
+    Page<Customer> findByCustomerPhoneContaining(String customerPhone, Pageable paging);
+    Customer findOneByCustomerPhone(String customerPhone);
 }

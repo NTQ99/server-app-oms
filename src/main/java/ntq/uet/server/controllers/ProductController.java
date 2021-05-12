@@ -9,11 +9,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import ntq.uet.server.exceptions.ResourceNotFoundException;
-import ntq.uet.server.models.PageResponseModel;
-import ntq.uet.server.models.product.ProductModel;
+import ntq.uet.server.models.product.Product;
+import ntq.uet.server.payload.BasePageResponse;
 import ntq.uet.server.services.ProductService;
 
 @RestController
@@ -24,12 +25,13 @@ public class ProductController {
     private ProductService service;
 
     @GetMapping
-    public ResponseEntity<PageResponseModel<ProductModel>> getAll(@RequestParam(required = false) String productName,
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<BasePageResponse<List<Product>>> getAll(@RequestParam(required = false) String productName,
             @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
 
-        List<ProductModel> allProducts = new ArrayList<>();
+        List<Product> allProducts = new ArrayList<>();
         Pageable paging = PageRequest.of(page, size);
-        Page<ProductModel> pageProducts;
+        Page<Product> pageProducts;
 
         if (productName == null) {
             pageProducts = service.getAllProducts(paging);
@@ -40,7 +42,7 @@ public class ProductController {
         allProducts = pageProducts.getContent();
 
         if (!allProducts.isEmpty()) {
-            return new ResponseEntity<>(new PageResponseModel<>(allProducts, pageProducts.getNumber(),
+            return new ResponseEntity<>(new BasePageResponse<>(allProducts, pageProducts.getNumber(),
                     pageProducts.getTotalPages(), pageProducts.getSize(), pageProducts.getTotalElements()),
                     HttpStatus.OK);
         } else {
@@ -50,9 +52,9 @@ public class ProductController {
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<ProductModel> getById(@PathVariable("id") String id) {
+    public ResponseEntity<Product> getById(@PathVariable("id") String id) {
 
-        ProductModel product = service.getProductById(id);
+        Product product = service.getProductById(id);
 
         if (product != null) {
             return new ResponseEntity<>(product, HttpStatus.OK);
@@ -63,9 +65,9 @@ public class ProductController {
     }
 
     @PostMapping
-    public ResponseEntity<ProductModel> create(@RequestBody ProductModel product) {
+    public ResponseEntity<Product> create(@RequestBody Product product) {
 
-        ProductModel tmp = service.getProductByName(product.getProductName());
+        Product tmp = service.getProductByName(product.getProductName());
         if (tmp == null) {
             return new ResponseEntity<>(service.createProduct(product), HttpStatus.CREATED);
         } else {
@@ -75,10 +77,10 @@ public class ProductController {
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<ProductModel> update(@PathVariable("id") String id,
-            @RequestBody ProductModel newProductData) {
+    public ResponseEntity<Product> update(@PathVariable("id") String id,
+            @RequestBody Product newProductData) {
 
-        ProductModel currProductData = service.getProductById(id);
+        Product currProductData = service.getProductById(id);
         if (currProductData == null) {
             throw new ResourceNotFoundException("Not found Product with id =" + id);
         }
@@ -86,7 +88,7 @@ public class ProductController {
         if (currProductData.equals(newProductData)) {
             return new ResponseEntity<>(currProductData, HttpStatus.NOT_MODIFIED);
         }
-        ProductModel newProductModified = service.updateProduct(id, newProductData);
+        Product newProductModified = service.updateProduct(id, newProductData);
         return new ResponseEntity<>(newProductModified, HttpStatus.OK);
 
     }
