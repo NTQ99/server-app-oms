@@ -1,4 +1,4 @@
-package ntq.uet.server.models.auth;
+package ntq.uet.server.models;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;

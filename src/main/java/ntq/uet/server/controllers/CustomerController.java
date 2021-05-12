@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import ntq.uet.server.exceptions.ResourceNotFoundException;
 import ntq.uet.server.models.Address;
-import ntq.uet.server.models.customer.Customer;
+import ntq.uet.server.models.Customer;
 import ntq.uet.server.payload.BasePageRequest;
 import ntq.uet.server.payload.BasePageResponse;
 import ntq.uet.server.services.CustomerService;

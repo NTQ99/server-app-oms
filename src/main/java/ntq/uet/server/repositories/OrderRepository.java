@@ -4,7 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
-import ntq.uet.server.models.order.Order;
+import ntq.uet.server.models.Order;
 
 public interface OrderRepository extends MongoRepository<Order, String> {
     Order findByOrderCode(String code);

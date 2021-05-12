@@ -5,7 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import ntq.uet.server.models.product.Product;
+import ntq.uet.server.models.Product;
 import ntq.uet.server.repositories.ProductRepository;
 
 @Service("productService")

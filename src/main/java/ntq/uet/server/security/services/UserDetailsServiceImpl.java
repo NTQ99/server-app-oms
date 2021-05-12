@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import ntq.uet.server.exceptions.GlobalException;
-import ntq.uet.server.models.auth.User;
+import ntq.uet.server.models.User;
 import ntq.uet.server.payload.ErrorMessage;
 import ntq.uet.server.repositories.UserRepository;
 

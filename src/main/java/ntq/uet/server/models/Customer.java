@@ -1,4 +1,4 @@
-package ntq.uet.server.models.customer;
+package ntq.uet.server.models;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,8 +7,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import ntq.uet.server.models.Address;
 
 // customer model
 @Document(collection = "customers")

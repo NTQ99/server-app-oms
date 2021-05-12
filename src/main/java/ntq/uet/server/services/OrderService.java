@@ -5,9 +5,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import ntq.uet.server.models.customer.Customer;
-import ntq.uet.server.models.order.Order;
-import ntq.uet.server.models.product.Product;
+import ntq.uet.server.models.Customer;
+import ntq.uet.server.models.Order;
+import ntq.uet.server.models.Product;
 import ntq.uet.server.repositories.OrderRepository;
 
 @Service("orderService")

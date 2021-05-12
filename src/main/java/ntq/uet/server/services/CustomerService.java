@@ -6,7 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import ntq.uet.server.models.Address;
-import ntq.uet.server.models.customer.Customer;
+import ntq.uet.server.models.Customer;
 import ntq.uet.server.repositories.CustomerRepository;
 
 @Service("customerService")

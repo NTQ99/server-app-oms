@@ -7,7 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import ntq.uet.server.models.auth.User;
+import ntq.uet.server.models.User;
 import ntq.uet.server.repositories.UserRepository;
 
 @Service("userService")

@@ -13,7 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import ntq.uet.server.exceptions.ResourceNotFoundException;
-import ntq.uet.server.models.product.Product;
+import ntq.uet.server.models.Product;
 import ntq.uet.server.payload.BasePageResponse;
 import ntq.uet.server.services.ProductService;
 

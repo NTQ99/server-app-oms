@@ -14,7 +14,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 import ntq.uet.server.exceptions.ResourceNotFoundException;
-import ntq.uet.server.models.order.Order;
+import ntq.uet.server.models.Order;
 import ntq.uet.server.payload.BasePageRequest;
 import ntq.uet.server.payload.BasePageResponse;
 import ntq.uet.server.services.OrderService;

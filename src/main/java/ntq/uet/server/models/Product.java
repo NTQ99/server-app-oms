@@ -1,4 +1,4 @@
-package ntq.uet.server.models.product;
+package ntq.uet.server.models;
 
 import java.util.ArrayList;
 import java.util.List;

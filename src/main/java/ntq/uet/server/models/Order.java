@@ -1,9 +1,7 @@
-package ntq.uet.server.models.order;
+package ntq.uet.server.models;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import ntq.uet.server.models.Address;
 
 @Document(collection = "orders")
 public class Order {

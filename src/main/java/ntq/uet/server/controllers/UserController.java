@@ -14,7 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import ntq.uet.server.exceptions.GlobalException;
-import ntq.uet.server.models.auth.User;
+import ntq.uet.server.models.User;
 import ntq.uet.server.payload.BasePageResponse;
 import ntq.uet.server.payload.BaseRequest;
 import ntq.uet.server.payload.ErrorMessage;

@@ -1,4 +1,4 @@
-package ntq.uet.server.models.auth;
+package ntq.uet.server.models;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -9,8 +9,6 @@ import javax.validation.constraints.Size;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import ntq.uet.server.models.Address;
 
 @Document(collection = "users")
 public class User {
