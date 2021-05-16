@@ -29,10 +29,10 @@ public class UserController {
 	private UserService service;
 
 	@Autowired
-	PasswordEncoder encoder;
+	private PasswordEncoder encoder;
 
 	@Autowired
-	JwtUtils jwtUtils;
+	private JwtUtils jwtUtils;
 
 	@PostMapping("/get")
 	@PreAuthorize("hasRole('ADMIN')")
@@ -52,6 +52,22 @@ public class UserController {
 			return new ResponseEntity<>(new BasePageResponse<>(allUsers, ErrorMessage.StatusCode.OK.message),
 					HttpStatus.OK);
 		}
+
+	}
+
+	@PostMapping("/get/info")
+	public ResponseEntity<BasePageResponse<User>> getUseInfor(@RequestHeader("Authorization") String jwt) {
+
+		String id = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+		User userData = service.getUserById(id);
+		if (userData == null) {
+			throw new GlobalException(ErrorMessage.StatusCode.USER_NOT_FOUND.message);
+		}
+
+		userData.setPassword(null);
+
+		return new ResponseEntity<>(
+				new BasePageResponse<>(userData, ErrorMessage.StatusCode.USER_MODIFIED.message), HttpStatus.OK);
 
 	}
 
@@ -85,7 +101,7 @@ public class UserController {
 
 	}
 
-	@PostMapping("/{id}/status")
+	@PostMapping("/update/status/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<BasePageResponse<User>> updateUserStatus(@PathVariable("id") String id, @RequestBody User newUserData) {
 
@@ -100,7 +116,7 @@ public class UserController {
 
 	}
 
-	@DeleteMapping("/{id}")
+	@PostMapping("/delete/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<BasePageResponse<User>> deleteUser(@PathVariable("id") String id) {
 
@@ -110,7 +126,7 @@ public class UserController {
 
 	}
 
-	@DeleteMapping()
+	@PostMapping("/delete")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<BasePageResponse<User>> deleteAllUsers() {
 

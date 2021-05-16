@@ -1,5 +1,8 @@
 package ntq.uet.server.services;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,35 +23,35 @@ public class ProductService {
     public Product getProductById(String id) {
         return productRepository.findById(id).orElse(null);
     }
-    
+
     public Product getProductByCode(String code) {
         return productRepository.findByProductCode(code);
     }
 
-    public Product getProductByName(String name) {
-        return productRepository.findOneByProductName(name);
+    public Product getProductByName(String userId, String name) {
+        List<Product> products = productRepository.findByUserId(userId);
+        return products.stream().filter(product -> product.getProductName().equals(name)).
+                collect(Collectors.toList()).get(0);
     }
 
     public Page<Product> findProductByName(String name, Pageable paging) {
         return productRepository.findByProductNameContainingIgnoreCase(name, paging);
     }
 
-    public Page<Product> getAllProducts(Pageable paging) {
-        return productRepository.findAll(paging);
+    public List<Product> getAllProducts(String userId) {
+        return productRepository.findByUserId(userId);
     }
 
-    public Product updateProduct(String id, Product newProductData) {
-        Product productData = productRepository.findById(id).orElse(null);
-        if (productData == null) {
-            return null;
-        } else {
-            productData.setProductName(newProductData.getProductName());
-            productData.setProductDetail(newProductData.getProductDetail());
-            productData.setProductPhotos(newProductData.getProductPhotos());
-            productData.setPromotion(newProductData.getPromotion());
-            productData.setRetailPrice(newProductData.getRetailPrice());
-            productData.setWholesalePrice(newProductData.getWholesalePrice());
-        }
+    public Product updateProduct(Product productData, Product newProductData) {
+
+        productData.setProductName(newProductData.getProductName());
+        productData.setProductDetail(newProductData.getProductDetail());
+        productData.setProductPhotos(newProductData.getProductPhotos());
+        productData.setPromotion(newProductData.getPromotion());
+        productData.setPrice(newProductData.getPrice());
+        productData.setWeight(newProductData.getWeight());
+        productData.setStock(newProductData.getStock());
+
         return productRepository.save(productData);
     }
 
@@ -56,8 +59,8 @@ public class ProductService {
         productRepository.deleteById(id);
     }
 
-    public void deleteAllProducts() {
-        productRepository.deleteAll();
+    public void deleteAllProducts(String userId) {
+        productRepository.deleteByUserId(userId);
     }
 
 }

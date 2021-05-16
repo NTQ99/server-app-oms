@@ -1,22 +1,24 @@
 package ntq.uet.server.controllers;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
-import ntq.uet.server.exceptions.ResourceNotFoundException;
+import ntq.uet.server.exceptions.GlobalException;
+import ntq.uet.server.models.Delivery;
 import ntq.uet.server.models.Order;
-import ntq.uet.server.payload.BasePageRequest;
 import ntq.uet.server.payload.BasePageResponse;
+import ntq.uet.server.payload.ErrorMessage;
+import ntq.uet.server.security.jwt.JwtUtils;
 import ntq.uet.server.services.OrderService;
 
 @RestController
@@ -26,84 +28,191 @@ public class OrderController {
     @Autowired
     private OrderService service;
 
-    @PostMapping(consumes = { MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            MediaType.MULTIPART_FORM_DATA_VALUE }, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BasePageResponse<List<Order>>> getAll(
-            @RequestBody MultiValueMap<String, String> requestObject) {
+    @Autowired
+    private JwtUtils jwtUtils;
 
-        BasePageRequest request = BasePageRequest.getObject(requestObject);
-        List<Order> allOrders = new ArrayList<>();
-        Pageable paging = PageRequest.of(request.getPagination().getPage() - 1, request.getPagination().getPerpage());
-        Page<Order> pageOrders;
+    @PostMapping("/get")
+    public ResponseEntity<?> getAll(@RequestHeader("Authorization") String jwt) {
 
-        if (request.getQuery().getGeneralSearch() == "" && request.getQuery().getStatus() == "") {
-            if (request.getQuery().getCustomerCode() == "") {
-                pageOrders = service.getAllOrders(paging);
-            } else {
-                pageOrders = service.getOrdersByCustomerCode(request.getQuery().getCustomerCode(), paging);
-            }
-        } else {
-            pageOrders = service.getAllOrdersCondition(request.getQuery().getGeneralSearch(),
-                    request.getQuery().getStatus(), paging);
-        }
+        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
 
-        allOrders = pageOrders.getContent();
+        List<Order> orders = service.getAllOrders(userId);
 
-        return new ResponseEntity<>(new BasePageResponse<>(allOrders, pageOrders.getNumber(),
-                pageOrders.getTotalPages(), pageOrders.getSize(), pageOrders.getTotalElements()), HttpStatus.OK);
+        return new ResponseEntity<>(new BasePageResponse<>(orders, ErrorMessage.StatusCode.OK.message), HttpStatus.OK);
 
     }
 
-    @GetMapping("{id}")
-    public ResponseEntity<Order> getById(@PathVariable("id") String id) {
+    @PostMapping("/get/{id}")
+    public ResponseEntity<?> getById(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id) {
+
+        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
 
         Order order = service.getOrderById(id);
 
-        if (order != null) {
-            return new ResponseEntity<>(order, HttpStatus.OK);
-        } else {
-            throw new ResourceNotFoundException("Not found Order for id " + id);
-        }
+        if (!order.validateUser(userId)) throw new GlobalException(ErrorMessage.StatusCode.UNAUTHORIZED.message);
+
+        return new ResponseEntity<>(new BasePageResponse<>(order, ErrorMessage.StatusCode.OK.message), HttpStatus.OK);
 
     }
 
-    @PostMapping
-    public ResponseEntity<Order> create(@RequestBody Order order) {
+    @PostMapping("/create")
+    public ResponseEntity<?> create(@RequestHeader("Authorization") String jwt, @RequestBody Order orderData) {
 
-        Order newOrder = service.createOrder(order);
-        return new ResponseEntity<>(newOrder, HttpStatus.CREATED);
+        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+        
+        orderData.setUserId(userId);
+        BasePageResponse<Order> response = new BasePageResponse<>(service.createOrder(orderData), ErrorMessage.StatusCode.CREATED.message);
+        return new ResponseEntity<>(response, HttpStatus.OK);
 
     }
 
-    @PutMapping("{id}")
-    public ResponseEntity<Order> update(@PathVariable("id") String id, @RequestBody Order newOrderData) {
+    @PostMapping("/update/{id}")
+    public ResponseEntity<?> update(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id,
+            @RequestBody Order newOrderData) {
+
+        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
 
         Order currOrderData = service.getOrderById(id);
+
         if (currOrderData == null) {
-            throw new ResourceNotFoundException("Not found Order for id " + id);
+            throw new GlobalException(ErrorMessage.StatusCode.NOT_FOUND.message);
+        }
+        
+        if (!currOrderData.validateUser(userId)) {
+            throw new GlobalException(ErrorMessage.StatusCode.UNAUTHORIZED.message);
         }
 
-        if (currOrderData.equals(newOrderData)) {
-            return new ResponseEntity<>(currOrderData, HttpStatus.NOT_MODIFIED);
-        }
-        Order newOrderModified = service.updateOrder(id, newOrderData);
-        return new ResponseEntity<>(newOrderModified, HttpStatus.OK);
+        BasePageResponse<Order> response = new BasePageResponse<>(service.updateOrder(currOrderData, newOrderData), ErrorMessage.StatusCode.MODIFIED.message);
+        return new ResponseEntity<>(response, HttpStatus.OK);
 
     }
 
-    @DeleteMapping("{id}")
-    public ResponseEntity<?> delete(@PathVariable("id") String id) {
+    @PostMapping("/delete/{id}")
+    public ResponseEntity<?> delete(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id) {
+
+        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+
+        Order currDeliveryData = service.getOrderById(id);
+
+        if (currDeliveryData == null) {
+            throw new GlobalException(ErrorMessage.StatusCode.NOT_FOUND.message);
+        }
+        
+        if (!currDeliveryData.validateUser(userId)) {
+            throw new GlobalException(ErrorMessage.StatusCode.UNAUTHORIZED.message);
+        }
 
         service.deleteOrder(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        BasePageResponse<Order> response = new BasePageResponse<>(null, ErrorMessage.StatusCode.OK.message);
+        return new ResponseEntity<>(response, HttpStatus.OK);
 
     }
 
-    @DeleteMapping
-    public ResponseEntity<?> deleteAll() {
+    @PostMapping("/delete")
+    public ResponseEntity<?> deleteAll(@RequestHeader("Authorization") String jwt) {
 
-        service.deleteAllOrders();
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+
+        service.deleteAllOrders(userId);
+        BasePageResponse<Order> response = new BasePageResponse<>(null, ErrorMessage.StatusCode.OK.message);
+        return new ResponseEntity<>(response, HttpStatus.OK);
 
     }
+
+    @PostMapping("/delivery/{id}")
+    public ResponseEntity<?> sendOrder(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id,
+            @RequestBody Delivery delivery) {
+
+        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+
+        Order order = service.getOrderById(id);
+
+        if (order == null) {
+            throw new GlobalException(ErrorMessage.StatusCode.NOT_FOUND.message);
+        }
+
+        if (!order.validateUser(userId)) {
+            throw new GlobalException(ErrorMessage.StatusCode.UNAUTHORIZED.message);
+        }
+
+        service.sendOrder(order, delivery);
+        BasePageResponse<?> response = new BasePageResponse<>(null, ErrorMessage.StatusCode.OK.message);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+
+    }
+
+    @PostMapping("/update/status/{id}")
+    public ResponseEntity<?> updateStatus(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id,
+            @RequestBody(required = false) Object request) {
+
+        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+
+        Order order = service.getOrderById(id);
+
+        if (order == null) {
+            throw new GlobalException(ErrorMessage.StatusCode.NOT_FOUND.message);
+        }
+
+        if (!order.validateUser(userId)) {
+            throw new GlobalException(ErrorMessage.StatusCode.UNAUTHORIZED.message);
+        }
+
+        if (request == null) {
+            service.updateOrderStatus(order, null);
+        } else {
+            ObjectMapper objectMapper = new ObjectMapper();
+            Map<String, String> map = objectMapper.convertValue(request, new TypeReference<Map<String, String>>() {});
+            service.updateOrderStatus(order, map.get("status"));
+        }
+        BasePageResponse<?> response = new BasePageResponse<>(null, ErrorMessage.StatusCode.OK.message);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+
+    }
+
+    @PostMapping("/delivery/print/{id}")
+    public ResponseEntity<?> printOrder(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id) {
+
+        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+
+        Order order = service.getOrderById(id);
+
+        if (order == null) {
+            throw new GlobalException(ErrorMessage.StatusCode.NOT_FOUND.message);
+        }
+
+        if (!order.validateUser(userId)) {
+            throw new GlobalException(ErrorMessage.StatusCode.UNAUTHORIZED.message);
+        }
+
+        BasePageResponse<?> response = new BasePageResponse<>(service.getPrintOrdersLink(Arrays.asList(order)),
+                ErrorMessage.StatusCode.OK.message);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+
+    }
+
+    @PostMapping("/print")
+    public ResponseEntity<?> printAllOrder(@RequestHeader("Authorization") String jwt) {
+
+        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+
+        List<Order> orders = service.getAllOrders(userId);
+
+        if (orders == null) {
+            throw new GlobalException(ErrorMessage.StatusCode.NOT_FOUND.message);
+        }
+
+        orders = orders.stream()
+                .filter(order -> (order.getStatus().equals(Order.Status.await_trans) && !order.isPrinted()))
+                .collect(Collectors.toList());
+
+        if (orders.isEmpty()) {
+            throw new GlobalException("Tất cả các đơn hàng đã được in phiếu!");
+        }
+
+        BasePageResponse<?> response = new BasePageResponse<>(service.getPrintOrdersLink(orders),
+                ErrorMessage.StatusCode.OK.message);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+
+    }
+
 }

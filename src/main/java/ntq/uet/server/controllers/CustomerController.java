@@ -1,23 +1,18 @@
 package ntq.uet.server.controllers;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
-import ntq.uet.server.exceptions.ResourceNotFoundException;
+import ntq.uet.server.exceptions.GlobalException;
 import ntq.uet.server.models.Address;
 import ntq.uet.server.models.Customer;
-import ntq.uet.server.payload.BasePageRequest;
 import ntq.uet.server.payload.BasePageResponse;
+import ntq.uet.server.payload.ErrorMessage;
+import ntq.uet.server.security.jwt.JwtUtils;
 import ntq.uet.server.services.CustomerService;
 
 @RestController
@@ -26,125 +21,162 @@ public class CustomerController {
 
     @Autowired
     private CustomerService service;
+    @Autowired
+	private JwtUtils jwtUtils;
 
-    @PostMapping(consumes = { MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            MediaType.MULTIPART_FORM_DATA_VALUE }, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BasePageResponse<List<Customer>>> getAll(
-            @RequestBody MultiValueMap<String, String> requestObject) {
+    @PostMapping("/get")
+    public ResponseEntity<?> getAll(@RequestHeader("Authorization") String jwt) {
 
-        BasePageRequest request = BasePageRequest.getObject(requestObject);
-        List<Customer> allCustomers = new ArrayList<>();
-        Pageable paging = PageRequest.of(request.getPagination().getPage() - 1, request.getPagination().getPerpage());
-        Page<Customer> pageCustomers;
+        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
 
-        if (request.getQuery().getGeneralSearch() == "") {
-            pageCustomers = service.getAllCustomers(paging);
-        } else {
-            pageCustomers = service.findCustomerByPhone(request.getQuery().getGeneralSearch(), paging);
-        }
+        List<Customer> customers = service.getAllCustomers(userId);
 
-        allCustomers = pageCustomers.getContent();
-        
-        return new ResponseEntity<>(new BasePageResponse<>(allCustomers, pageCustomers.getNumber(),
-                pageCustomers.getTotalPages(), pageCustomers.getSize(), pageCustomers.getTotalElements()),
-                HttpStatus.OK);
+        return new ResponseEntity<>(new BasePageResponse<>(customers, ErrorMessage.StatusCode.OK.message), HttpStatus.OK);
 
     }
 
-    @GetMapping("{id}")
-    public ResponseEntity<Customer> getById(@PathVariable("id") String id) {
+    @PostMapping("/get/{id}")
+    public ResponseEntity<?> getById(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id) {
+
+        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
 
         Customer customer = service.getCustomerById(id);
 
-        if (customer != null) {
-            return new ResponseEntity<>(customer, HttpStatus.OK);
-        } else {
-            throw new ResourceNotFoundException("Not found Customer with id = " + id);
-        }
+        if (!customer.validateUser(userId)) throw new GlobalException(ErrorMessage.StatusCode.UNAUTHORIZED.message);
+
+        return new ResponseEntity<>(new BasePageResponse<>(customer, ErrorMessage.StatusCode.OK.message), HttpStatus.OK);
 
     }
 
-    @PostMapping
-    public ResponseEntity<Customer> create(@RequestBody Customer customerData) {
+    @PostMapping("/create")
+    public ResponseEntity<?> create(@RequestHeader("Authorization") String jwt, @RequestBody Customer customerData) {
 
-        Customer tmp = service.getCustomerByPhone(customerData.getCustomerPhone());
-        if (tmp == null) {
-            return new ResponseEntity<>(service.createCustomer(customerData), HttpStatus.CREATED);
-        } else {
-            return new ResponseEntity<>(tmp, HttpStatus.CONFLICT);
+        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+        
+        Customer currCustomerData = service.getCustomerByPhone(userId, customerData.getCustomerPhone());
+
+        if (currCustomerData != null) {
+            throw new GlobalException(ErrorMessage.StatusCode.EXIST.message);
         }
+
+        customerData.setUserId(userId);
+        BasePageResponse<Customer> response = new BasePageResponse<>(service.createCustomer(customerData), ErrorMessage.StatusCode.CREATED.message);
+        return new ResponseEntity<>(response, HttpStatus.OK);
 
     }
 
-    @PutMapping("{id}")
-    public ResponseEntity<Customer> update(@PathVariable("id") String id,
+    @PostMapping("/update/{id}")
+    public ResponseEntity<?> update(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id,
             @RequestBody Customer newCustomerData) {
 
+        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+
         Customer currCustomerData = service.getCustomerById(id);
+
         if (currCustomerData == null) {
-            throw new ResourceNotFoundException("Not found Customer with id = " + id);
+            throw new GlobalException(ErrorMessage.StatusCode.NOT_FOUND.message);
+        }
+        
+        if (!currCustomerData.validateUser(userId)) {
+            throw new GlobalException(ErrorMessage.StatusCode.UNAUTHORIZED.message);
         }
 
-        if (currCustomerData.equals(newCustomerData)) {
-            return new ResponseEntity<>(currCustomerData, HttpStatus.NOT_MODIFIED);
-        }
-        Customer newCustomerModified = service.updateCustomer(id, newCustomerData);
-        return new ResponseEntity<>(newCustomerModified, HttpStatus.OK);
+        BasePageResponse<Customer> response = new BasePageResponse<>(service.updateCustomer(currCustomerData, newCustomerData), ErrorMessage.StatusCode.MODIFIED.message);
+        return new ResponseEntity<>(response, HttpStatus.OK);
 
     }
 
-    @PutMapping("{id}/address/add")
-    public ResponseEntity<Customer> addAddress(@PathVariable("id") String id,
+    @PutMapping("/create/address/{id}")
+    public ResponseEntity<?> addAddress(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id,
             @RequestBody Address newAddress) {
 
-        Customer newCustomerModified = service.addCustomerAddress(id, newAddress);
-        if (newCustomerModified != null) {
-            return new ResponseEntity<>(newCustomerModified, HttpStatus.OK);
-        } else {
-            throw new ResourceNotFoundException("Not found Customer with id = " + id);
+        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+
+        Customer currCustomerData = service.getCustomerById(id);
+
+        if (currCustomerData == null) {
+            throw new GlobalException(ErrorMessage.StatusCode.NOT_FOUND.message);
         }
+        
+        if (!currCustomerData.validateUser(userId)) {
+            throw new GlobalException(ErrorMessage.StatusCode.UNAUTHORIZED.message);
+        }
+
+        BasePageResponse<Customer> response = new BasePageResponse<>(service.addCustomerAddress(currCustomerData, newAddress), ErrorMessage.StatusCode.MODIFIED.message);
+        return new ResponseEntity<>(response, HttpStatus.OK);
 
     }
 
-    @PutMapping("{id}/address/update")
-    public ResponseEntity<Customer> updateAddress(@PathVariable("id") String id,
-            @RequestBody Address[] address) {
+    @PutMapping("/update/address/{id}/{index}")
+    public ResponseEntity<?> updateAddress(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id, @PathVariable("index") String index,
+            @RequestBody Address newAddressData) {
 
-        Customer newCustomerModified = service.updateCustomerAddress(id, address[0], address[1]);
-        if (newCustomerModified != null) {
-            return new ResponseEntity<>(newCustomerModified, HttpStatus.OK);
-        } else {
-            throw new ResourceNotFoundException("Not found Customer with id = " + id);
+        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+
+        Customer currCustomerData = service.getCustomerById(id);
+
+        if (currCustomerData == null) {
+            throw new GlobalException(ErrorMessage.StatusCode.NOT_FOUND.message);
         }
+        
+        if (!currCustomerData.validateUser(userId)) {
+            throw new GlobalException(ErrorMessage.StatusCode.UNAUTHORIZED.message);
+        }
+        
+        BasePageResponse<Customer> response = new BasePageResponse<>(service.updateCustomerAddress(currCustomerData, Integer.parseInt(index), newAddressData), ErrorMessage.StatusCode.MODIFIED.message);
+        return new ResponseEntity<>(response, HttpStatus.OK);
 
     }
 
-    @PutMapping("{id}/address/delete")
-    public ResponseEntity<Customer> removeAddress(@PathVariable("id") String id,
-            @RequestBody Address address) {
+    @PutMapping("/delete/address/{id}/{index}")
+    public ResponseEntity<?> removeAddress(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id, @PathVariable("index") String index) {
 
-        Customer newCustomerModified = service.removeCustomerAddress(id, address);
-        if (newCustomerModified != null) {
-            return new ResponseEntity<>(newCustomerModified, HttpStatus.OK);
-        } else {
-            throw new ResourceNotFoundException("Not found Customer with id = " + id);
+        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+
+        Customer currCustomerData = service.getCustomerById(id);
+
+        if (currCustomerData == null) {
+            throw new GlobalException(ErrorMessage.StatusCode.NOT_FOUND.message);
         }
+        
+        if (!currCustomerData.validateUser(userId)) {
+            throw new GlobalException(ErrorMessage.StatusCode.UNAUTHORIZED.message);
+        }
+        
+        BasePageResponse<Customer> response = new BasePageResponse<>(service.removeCustomerAddress(currCustomerData, Integer.parseInt(index)), ErrorMessage.StatusCode.MODIFIED.message);
+        return new ResponseEntity<>(response, HttpStatus.OK);
 
     }
 
-    @DeleteMapping("{id}")
-    public ResponseEntity<?> delete(@PathVariable("id") String id) {
+    @PostMapping("/delete/{id}")
+    public ResponseEntity<?> delete(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id) {
+
+        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+
+        Customer currDeliveryData = service.getCustomerById(id);
+
+        if (currDeliveryData == null) {
+            throw new GlobalException(ErrorMessage.StatusCode.NOT_FOUND.message);
+        }
+        
+        if (!currDeliveryData.validateUser(userId)) {
+            throw new GlobalException(ErrorMessage.StatusCode.UNAUTHORIZED.message);
+        }
 
         service.deleteCustomer(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        BasePageResponse<Customer> response = new BasePageResponse<>(null, ErrorMessage.StatusCode.OK.message);
+        return new ResponseEntity<>(response, HttpStatus.OK);
 
     }
 
-    @DeleteMapping
-    public ResponseEntity<?> deleteAll() {
+    @PostMapping("/delete")
+    public ResponseEntity<?> deleteAll(@RequestHeader("Authorization") String jwt) {
 
-        service.deleteAllCustomers();
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+
+        service.deleteAllCustomers(userId);
+        BasePageResponse<Customer> response = new BasePageResponse<>(null, ErrorMessage.StatusCode.OK.message);
+        return new ResponseEntity<>(response, HttpStatus.OK);
 
     }
 }

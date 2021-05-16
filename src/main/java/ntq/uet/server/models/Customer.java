@@ -8,6 +8,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import ntq.uet.server.exceptions.GlobalException;
+
 // customer model
 @Document(collection = "customers")
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -16,10 +18,11 @@ public class Customer {
     @Id
     private String id;
 
-    private String customerCode="";
-    private String customerName="";
+    private String userId;
+    private String customerCode;
+    private String customerName;
     private List<Address> customerAddresses = new ArrayList<>();
-    private String customerPhone="";
+    private String customerPhone;
     private long createdAt;
 
     public Customer() {
@@ -28,10 +31,19 @@ public class Customer {
         this.setCreatedAt(now);
     };
 
-    public Customer(String customerName, String customerPhone) {
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public Customer(String userId, String customerName, String customerPhone) {
         long now = System.currentTimeMillis();
         this.setCustomerCode(String.format("%07d", now % 1046527));
         this.setCreatedAt(now);
+        this.setUserId(userId);
         this.setCustomerName(customerName);
         this.setCustomerPhone(customerPhone);
     };
@@ -60,19 +72,24 @@ public class Customer {
         return customerAddresses;
     }
 
+    public void setCustomerAddresses(List<Address> customerAddresses) {
+        this.customerAddresses = customerAddresses;
+    }
+
     public void addCustomerAddress(Address customerAddress) {
         if (!this.customerAddresses.contains(customerAddress)) {
             this.customerAddresses.add(customerAddress);
         }
     }
 
-    public void updateCustomerAddress(Address currCustomerAddress, Address newCustomerAddress) {
-        int index = this.customerAddresses.indexOf(currCustomerAddress);
-        this.customerAddresses.set(index, newCustomerAddress);
+    public void updateCustomerAddress(int index, Address newCustomerAddress) {
+        if (!this.customerAddresses.contains(newCustomerAddress)) {
+            this.customerAddresses.set(index, newCustomerAddress);
+        }
     }
     
-    public void removeCustomerAddress(Address customerAddress) {
-        this.customerAddresses.remove(customerAddress);
+    public void removeCustomerAddress(int index) {
+        this.customerAddresses.remove(index);
     }
 
     public String getCustomerName() {
@@ -99,5 +116,14 @@ public class Customer {
         Customer customer = (Customer) o;
 
         return this.getCustomerName().equals(customer.getCustomerName()) && this.getCustomerPhone().equals(customer.getCustomerPhone());
+    }
+
+    public boolean validateUser(String userId) {
+        return this.getUserId().equals(userId);
+    }
+
+    public void validateRequest() {
+        if (this.getCustomerPhone() == null) throw new GlobalException("customer phone not null");
+        if (this.getCustomerName() == null) throw new GlobalException("customer name not null");
     }
 }

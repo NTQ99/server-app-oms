@@ -1,25 +1,26 @@
 package ntq.uet.server.models;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import ntq.uet.server.exceptions.GlobalException;
 
 @Document(collection = "products")
 public class Product {
     @Id
     private String id;
 
+    private String userId;
     private String productCode;
-    private String productName = "";
-    private String productDetail = "";
-    private List<String> productPhotos = new ArrayList<>();
-    private Double capitalPrice = 0.0;
-    private Double retailPrice = 0.0;
-    private Double wholesalePrice = 0.0;
-    private Double promotion = 0.0;
-    private Double weight = 0.0;
+    private String productName;
+    private String productDetail;
+    private List<String> productPhotos;
+    private int[] price = new int[3]; // 0: giá vốn, 1: giá lẻ, 2: giá sỉ
+    private double promotion;
+    private int weight; // đơn vị gram
+    private int stock;
     private long createdAt;
 
     public Product() {
@@ -28,17 +29,36 @@ public class Product {
         this.setCreatedAt(now);
     };
 
-    public Product(String productName, String productDetail, List<String> productPhotos, Double retailPrice,
-            Double wholesalePrice, Double promotion) {
-        long now = System.currentTimeMillis();
-        this.setProductCode(String.format("%07d", now % 1046527));
-        this.setCreatedAt(now);
-        this.setProductName(productName);
-        this.setProductDetail(productDetail);
-        this.setProductPhotos(productPhotos);
-        this.setRetailPrice(retailPrice);
-        this.setWholesalePrice(wholesalePrice);
-        this.setPromotion(promotion);
+    public int[] getPrice() {
+        return price;
+    }
+
+    public void setPrice(int[] price) {
+        this.price = price;
+    }
+
+    public int getStock() {
+        return stock;
+    }
+
+    public void setStock(int stock) {
+        this.stock = stock;
+    }
+
+    public int getWeight() {
+        return weight;
+    }
+
+    public void setWeight(int weight) {
+        this.weight = weight;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     public String getId() {
@@ -53,28 +73,12 @@ public class Product {
         this.createdAt = createdAt;
     }
 
-    public Double getPromotion() {
+    public double getPromotion() {
         return promotion;
     }
 
-    public void setPromotion(Double promotion) {
+    public void setPromotion(double promotion) {
         this.promotion = promotion;
-    }
-
-    public Double getWholesalePrice() {
-        return wholesalePrice;
-    }
-
-    public void setWholesalePrice(Double wholesalePrice) {
-        this.wholesalePrice = wholesalePrice;
-    }
-
-    public Double getRetailPrice() {
-        return retailPrice;
-    }
-
-    public void setRetailPrice(Double retailPrice) {
-        this.retailPrice = retailPrice;
     }
 
     public List<String> getProductPhotos() {
@@ -109,20 +113,12 @@ public class Product {
         this.productCode = productCode;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-
-        Product product = (Product) o;
-
-        return this.getProductName().equals(product.getProductName())
-                && this.getProductDetail().equals(product.getProductDetail())
-                && this.getProductPhotos().equals(product.getProductPhotos())
-                && this.getPromotion().equals(product.getPromotion())
-                && this.getRetailPrice().equals(product.getRetailPrice())
-                && this.getWholesalePrice().equals(product.getWholesalePrice());
+    public boolean validateUser(String userId) {
+        return this.getUserId().equals(userId);
+    }
+    
+    public void validateRequest() {
+        if (this.getProductName() == null) throw new GlobalException("product name not null");
+        if (this.getPrice() == null) throw new GlobalException("price not null");
     }
 }

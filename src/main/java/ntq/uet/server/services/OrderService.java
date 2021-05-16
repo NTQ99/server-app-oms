@@ -1,13 +1,21 @@
 package ntq.uet.server.services;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import ntq.uet.server.exceptions.GlobalException;
 import ntq.uet.server.models.Customer;
+import ntq.uet.server.models.Delivery;
+import ntq.uet.server.models.DeliveryUnit;
 import ntq.uet.server.models.Order;
 import ntq.uet.server.models.Product;
+import ntq.uet.server.payload.ErrorMessage;
 import ntq.uet.server.repositories.OrderRepository;
 
 @Service("orderService")
@@ -18,23 +26,31 @@ public class OrderService {
     private CustomerService customerService;
     @Autowired
     private ProductService productService;
+    @Autowired
+    private DeliveryUnitService deliveryUnitService;
+    @Autowired
+    private DeliveryService deliveryService;
 
     public Order createOrder(Order orderData) {
-        Customer customer = new Customer(orderData.getCustomerName(), orderData.getCustomerPhone());
-        Customer customerData = customerService.getCustomerByPhone(customer.getCustomerPhone());
-        if (customerData == null) {
-            customerData = customerService.createCustomer(customer);
-        }
-        customerService.addCustomerAddress(customerData.getId(), orderData.getDeliveryTo());
-        orderData.setCustomerCode(customerData.getCustomerCode());
 
-        Product product = new Product();
-        product.setProductName(orderData.getProductName());
-        Product productData = productService.getProductByName(product.getProductName());
-        if (productData == null) {
-            productData = productService.createProduct(product);
+        if (orderData.getProducts() == null) throw new GlobalException("products not null");
+
+        for (Order.Item item : orderData.getProducts()) {
+            Product product = productService.getProductByName(orderData.getUserId(), item.getProductName());
+            if (product == null) {
+                throw new GlobalException("not found product with name: " + item.getProductName());
+            } else item.setProductId(product.getId());
         }
-        orderData.setProductCode(productData.getProductCode());
+
+        Customer customerData = customerService.getCustomerByPhone(orderData.getUserId(), orderData.getCustomerPhone());
+        if (customerData == null) {
+            Customer customer = new Customer(orderData.getUserId(), orderData.getCustomerName(), orderData.getCustomerPhone());
+            customer.setCustomerAddresses(Arrays.asList(orderData.getDeliveryTo()));
+            orderData.setCustomerId(customerService.createCustomer(customer).getId());
+        } else {
+            orderData.setCustomerId(customerData.getId());
+            customerService.addCustomerAddress(customerData, orderData.getDeliveryTo());
+        }
 
         return orderRepository.save(orderData);
     }
@@ -47,8 +63,8 @@ public class OrderService {
         return orderRepository.findByOrderCode(code);
     }
 
-    public Page<Order> getOrdersByCustomerCode(String customerCode, Pageable paging) {
-        return orderRepository.findByCustomerCode(customerCode, paging);
+    public Page<Order> getOrdersByCustomerId(String customerCode, Pageable paging) {
+        return orderRepository.findByCustomerId(customerCode, paging);
     }
 
     public Page<Order> getOrderByCreatedDateBetween(String createdDateFrom, String createdDateTo, Pageable paging) {
@@ -75,8 +91,8 @@ public class OrderService {
         return orderRepository.findByCustomerPhoneContainingAndStatus(phone, status, paging);
     }
 
-    public Page<Order> getAllOrders(Pageable paging) {
-        return orderRepository.findAll(paging);
+    public List<Order> getAllOrders(String userId) {
+        return orderRepository.findByUserId(userId);
     }
 
     public Page<Order> getAllOrdersCondition(String generalSearch, String status, Pageable paging) {
@@ -97,51 +113,48 @@ public class OrderService {
                     return this.findOrderByCustomerNameAndStatus(generalSearch, status, paging);
                 }
             }
-            
+
         }
     }
 
-    public Order updateOrder(String id, Order newOrderModelData) {
-        Order orderData = orderRepository.findById(id).orElse(null);
-        if (orderData == null) {
-            return null;
-        }
+    public Order updateOrder(Order orderData, Order newOrderData) {
 
-        if (!orderData.getCustomerPhone().equals(newOrderModelData.getCustomerPhone())) {
-            Customer newCustomerData = customerService.getCustomerByPhone(newOrderModelData.getCustomerPhone());
+        if (!orderData.getCustomerPhone().equals(newOrderData.getCustomerPhone())) {
+            Customer newCustomerData = customerService.getCustomerByPhone(orderData.getUserId(), newOrderData.getCustomerPhone());
             if (newCustomerData == null) {
-                newCustomerData = new Customer(newOrderModelData.getCustomerName(), newOrderModelData.getCustomerPhone());
-                orderData.setCustomerCode(customerService.createCustomer(newCustomerData).getCustomerCode());
+                newCustomerData = new Customer(orderData.getUserId(), newOrderData.getCustomerName(), newOrderData.getCustomerPhone());
+                newCustomerData.setCustomerAddresses(Arrays.asList(orderData.getDeliveryTo()));
+                orderData.setCustomerId(customerService.createCustomer(newCustomerData).getId());
             } else {
-                orderData.setCustomerCode(newCustomerData.getCustomerCode());
+                customerService.addCustomerAddress(newCustomerData, orderData.getDeliveryTo());
+                orderData.setCustomerId(newCustomerData.getId());
             }
-            orderData.setCustomerName(newOrderModelData.getCustomerName());
-            orderData.setCustomerPhone(newOrderModelData.getCustomerPhone());
+            orderData.setCustomerName(newOrderData.getCustomerName());
+            orderData.setCustomerPhone(newOrderData.getCustomerPhone());
         }
 
-        if (!orderData.getDeliveryTo().equals(newOrderModelData.getDeliveryTo())) {
-            Customer customerData = customerService.getCustomerByCode(orderData.getCustomerCode());
-            customerService.addCustomerAddress(customerData.getId(), newOrderModelData.getDeliveryTo());
-            orderData.setDeliveryTo(newOrderModelData.getDeliveryTo());
+        if (!orderData.getDeliveryTo().equals(newOrderData.getDeliveryTo())) {
+            Customer customerData = customerService.getCustomerByCode(orderData.getCustomerId());
+            customerService.addCustomerAddress(customerData, newOrderData.getDeliveryTo());
+            orderData.setDeliveryTo(newOrderData.getDeliveryTo());
         }
 
-        if (!orderData.getProductName().equals(newOrderModelData.getProductName())) {
-            Product newProductData = productService.getProductByName(newOrderModelData.getProductName());
-            if (newProductData == null) {
-                newProductData = new Product();
-                newProductData.setProductName(newOrderModelData.getProductName());
-                orderData.setProductCode(productService.createProduct(newProductData).getProductCode());
-            } else {
-                orderData.setProductCode(newProductData.getProductCode());
+        for (Order.Item item : newOrderData.getProducts()) {
+            if (item.getProductId() == null) {
+                Product product = productService.getProductByName(orderData.getUserId(), item.getProductName());
+                if (product == null) {
+                    throw new GlobalException("not found product with name: " + item.getProductName());
+                } else item.setProductId(product.getId());
             }
-            orderData.setProductName(newOrderModelData.getProductName());
         }
 
-        orderData.setDeliveryUnit(newOrderModelData.getDeliveryUnit());
-        orderData.setQuantity(newOrderModelData.getQuantity());
-        orderData.setShipFee(newOrderModelData.getShipFee());
-        orderData.setStatus(newOrderModelData.getStatus());
-        orderData.setNote(newOrderModelData.getNote());
+        orderData.setProducts(newOrderData.getProducts());
+        orderData.setDeliveryUnitName(newOrderData.getDeliveryUnitName());
+        orderData.setCodAmount(newOrderData.getCodAmount());
+        orderData.setPriceType(newOrderData.getPriceType());
+        orderData.setTotalPrice(newOrderData.getTotalPrice());
+        orderData.setShipFee(newOrderData.getShipFee());
+        orderData.setNote(newOrderData.getNote());
 
         return orderRepository.save(orderData);
     }
@@ -150,8 +163,91 @@ public class OrderService {
         orderRepository.deleteById(id);
     }
 
-    public void deleteAllOrders() {
-        orderRepository.deleteAll();
+    public void deleteAllOrders(String userId) {
+        orderRepository.deleteByUserId(userId);
+    }
+
+    public void sendOrder(Order order, Delivery delivery) {
+
+        List<Product> products = new ArrayList<>();
+        if (order.getProducts() == null)
+            throw new GlobalException("products not null");
+        for (Order.Item item : order.getProducts()) {
+            Product product = productService.getProductById(item.getProductId());
+            if (product == null)
+                throw new GlobalException("not found product with id: " + item.getProductId());
+            if (product.getStock() < item.getQuantity())
+                throw new GlobalException(ErrorMessage.StatusCode.OUT_OF_STOCK.message);
+
+            product.setStock(product.getStock() - item.getQuantity());
+            productService.createProduct(product);
+
+            products.add(product);
+        }
+
+        DeliveryUnit deliveryUnit = deliveryUnitService.getDeliveryUnitByName(order.getUserId(), order.getDeliveryUnitName());
+        if (deliveryUnit == null)
+            throw new GlobalException("delivery unit not found with name: " + order.getDeliveryUnitName());
+
+        if (deliveryUnit.getDeliveryUnitName().equals("GHN")) {
+            delivery.setRequest(products, order);
+            delivery.setTo_district_id(deliveryService.GHNGetDistrictId(deliveryUnit.getToken(),
+                    order.getDeliveryTo().getProvince(), order.getDeliveryTo().getDistrict()));
+            delivery.setTo_ward_code(deliveryService.GHNGetWardCode(deliveryUnit.getToken(),
+                    delivery.getTo_district_id(), order.getDeliveryTo().getWard()));
+            order.setDeliveryCode(
+                    deliveryService.GHNCreateOrder(deliveryUnit.getToken(), deliveryUnit.getShopId(), delivery));
+            order.setStatus(Order.Status.await_trans);
+            orderRepository.save(order);
+        } else
+            throw new GlobalException("delivery unit unavailable");
+    }
+
+    public void updateOrderStatus(Order order, String status) {
+
+        if (status != null) {
+            order.setStatus(Order.Status.valueOf(status));
+            orderRepository.save(order);
+            return;
+        }
+
+        DeliveryUnit deliveryUnit = deliveryUnitService.getDeliveryUnitByName(order.getUserId(), order.getDeliveryUnitName());
+        if (deliveryUnit == null)
+            throw new GlobalException("delivery unit not found with name: " + order.getDeliveryUnitName());
+        
+        if (deliveryUnit.getDeliveryUnitName().equals("GHN")) {
+            String newStatus = deliveryService.GHNGetStatus(deliveryUnit.getToken(), deliveryUnit.getShopId(), order.getDeliveryCode());
+            switch (newStatus) {
+                case "cancel":
+                    order.setStatus(Order.Status.canceled);
+                    break;
+                case "returned":
+                    order.setStatus(Order.Status.fail);
+                    break;
+                default:
+                    order.setStatus(Order.Status.await_trans);
+                    break;
+            }
+            orderRepository.save(order);
+        } else
+            throw new GlobalException("delivery unit unavailable");
+    }
+
+    public String getPrintOrdersLink(List<Order> orders) {
+        List<String> orderCodes = new ArrayList<>();
+        for (Order order: orders) {
+            orderCodes.add(order.getDeliveryCode());
+            order.setPrinted(true);
+            orderRepository.save(order);
+        }
+        DeliveryUnit deliveryUnit = deliveryUnitService.getDeliveryUnitByName(orders.get(0).getUserId(), orders.get(0).getDeliveryUnitName());
+        if (deliveryUnit == null)
+            throw new GlobalException("delivery unit not found with name: " + orders.get(0).getDeliveryUnitName());
+        
+        if (deliveryUnit.getDeliveryUnitName().equals("GHN")) {
+            return deliveryService.GHNGetPrintOrdersLink(deliveryUnit.getToken(), orderCodes);
+        } else
+        throw new GlobalException("delivery unit unavailable");
     }
 
 }

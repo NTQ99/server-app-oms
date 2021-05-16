@@ -1,5 +1,8 @@
 package ntq.uet.server.services;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,56 +29,47 @@ public class CustomerService {
         return customerRepository.findByCustomerCode(code);
     }
 
-    public Customer getCustomerByPhone(String phone){
-        return customerRepository.findOneByCustomerPhone(phone);
+    public Customer getCustomerByPhone(String userId, String phone) {
+        List<Customer> customers = customerRepository.findByUserId(userId);
+        if (customers.isEmpty()) return null;
+        return customers.stream().filter(customer -> customer.getCustomerPhone().equals(phone))
+                .collect(Collectors.toList()).get(0);
     }
 
     public Page<Customer> findCustomerByPhone(String phone, Pageable paging) {
         return customerRepository.findByCustomerPhoneContaining(phone, paging);
     }
 
-    public Page<Customer> getAllCustomers(Pageable paging) {
-        return customerRepository.findAll(paging);
+    public List<Customer> getAllCustomers(String userId) {
+        return customerRepository.findByUserId(userId);
     }
 
-    public Customer updateCustomer(String id, Customer newCustomerData) {
-        Customer customerData = customerRepository.findById(id).orElse(null);
-        if (customerData == null) {
-            return null;
-        } else {
-            customerData.setCustomerName(newCustomerData.getCustomerName());
-            customerData.setCustomerPhone(newCustomerData.getCustomerPhone());
-        }
+    public Customer updateCustomer(Customer customerData, Customer newCustomerData) {
+
+        customerData.setCustomerName(newCustomerData.getCustomerName());
+        customerData.setCustomerPhone(newCustomerData.getCustomerPhone());
+
         return customerRepository.save(customerData);
     }
 
-    public Customer addCustomerAddress(String id, Address newAddress) {
-        Customer customerData = customerRepository.findById(id).orElse(null);
-        if (customerData == null) {
-            return null;
-        } else {
-            customerData.addCustomerAddress(newAddress);
-        }
+    public Customer addCustomerAddress(Customer customerData, Address newAddress) {
+
+        customerData.addCustomerAddress(newAddress);
+
         return customerRepository.save(customerData);
     }
 
-    public Customer updateCustomerAddress(String id, Address currAddress, Address newAddress) {
-        Customer customerData = customerRepository.findById(id).orElse(null);
-        if (customerData == null) {
-            return null;
-        } else {
-            customerData.updateCustomerAddress(currAddress, newAddress);
-        }
+    public Customer updateCustomerAddress(Customer customerData, int index, Address newAddressData) {
+
+        customerData.updateCustomerAddress(index, newAddressData);
+
         return customerRepository.save(customerData);
     }
 
-    public Customer removeCustomerAddress(String id, Address address) {
-        Customer customerData = customerRepository.findById(id).orElse(null);
-        if (customerData == null) {
-            return null;
-        } else {
-            customerData.removeCustomerAddress(address);
-        }
+    public Customer removeCustomerAddress(Customer customerData, int index) {
+
+        customerData.removeCustomerAddress(index);
+
         return customerRepository.save(customerData);
     }
 
@@ -83,8 +77,8 @@ public class CustomerService {
         customerRepository.deleteById(id);
     }
 
-    public void deleteAllCustomers() {
-        customerRepository.deleteAll();
+    public void deleteAllCustomers(String userId) {
+        customerRepository.deleteByUserId(userId);
     }
 
 }

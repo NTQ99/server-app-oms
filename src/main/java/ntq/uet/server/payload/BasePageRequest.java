@@ -36,18 +36,18 @@ public class BasePageRequest {
     public static class Query {
         private String status;
         private String generalSearch;
-        private String customerCode;
+        private String customerId;
 
         public String getStatus() {
             return status;
         }
 
-        public String getCustomerCode() {
-            return customerCode;
+        public String getCustomerId() {
+            return customerId;
         }
 
-        public void setCustomerCode(String customerCode) {
-            this.customerCode = customerCode;
+        public void setCustomerId(String customerId) {
+            this.customerId = customerId;
         }
 
         public String getGeneralSearch() {
@@ -65,10 +65,10 @@ public class BasePageRequest {
         public Query() {
         }
 
-        public Query(String status, String generalSearch, String customerCode) {
+        public Query(String status, String generalSearch, String customerId) {
             this.status = status;
             this.generalSearch = generalSearch;
-            this.customerCode = customerCode;
+            this.customerId = customerId;
         }
     }
 
@@ -143,12 +143,12 @@ public class BasePageRequest {
         object.add("sort[field]", "");
         object.add("query[status]", "");
         object.add("query[generalSearch]", "");
-        object.add("query[customerCode]", "");
+        object.add("query[customerId]", "");
         Pagination pagination = new Pagination(Integer.parseInt(object.get("pagination[page]").get(0)),
                 Integer.parseInt(object.get("pagination[perpage]").get(0)));
         Sort sort = new Sort(object.getFirst("sort[sort]"), object.getFirst("sort[field]"));
         Query query = new Query(object.getFirst("query[status]"), object.getFirst("query[generalSearch]"),
-                object.getFirst("query[customerCode]"));
+                object.getFirst("query[customerId]"));
         return new BasePageRequest(pagination, sort, query);
     }
 

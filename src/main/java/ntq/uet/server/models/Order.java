@@ -1,10 +1,45 @@
 package ntq.uet.server.models;
 
+import java.util.List;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import ntq.uet.server.exceptions.GlobalException;
+
 @Document(collection = "orders")
 public class Order {
+
+    public static class Item {
+        private String productId;
+        private String productName;
+        private int quantity;
+        public Item(String productId, String productName, int quantity) {
+            this.productId = productId;
+            this.productName = productName;
+            this.quantity = quantity;
+        }
+        public int getQuantity() {
+            return quantity;
+        }
+        public void setQuantity(int quantity) {
+            this.quantity = quantity;
+        }
+        public Item() {
+        }
+        public String getProductId() {
+            return productId;
+        }
+        public String getProductName() {
+            return productName;
+        }
+        public void setProductName(String productName) {
+            this.productName = productName;
+        }
+        public void setProductId(String productId) {
+            this.productId = productId;
+        }
+    }
 
     public enum Status {
         wait_confirm, // chờ xác nhận từ người mua
@@ -18,20 +53,22 @@ public class Order {
     @Id
     private String id;
 
+    private String userId;
     private String orderCode;
-    private String customerCode = "";
-    private String customerName = "";
-    private String customerPhone = "";
-    private String productCode = "";
-    private String productName = "";
-    private String deliveryUnit = "";
-    private String note = "";
-    private Address deliveryTo = new Address();
-    private Double shipFee = 0.0;
-    private Double totalPrice = 0.0;
-    private Double codAmount = 0.0;
-    private Status status = Status.wait_confirm;
-    private int quantity = 0;
+    private String customerId;
+    private String customerName;
+    private String customerPhone;
+    private List<Item> products;
+    private String deliveryUnitName;
+    private String deliveryCode;
+    private String note;
+    private Address deliveryTo;
+    private int shipFee;
+    private int totalPrice;
+    private int codAmount;
+    private boolean isPrinted;
+    private Status status;
+    private int priceType; // 0: giá vốn, 1: giá lẻ, 2: giá sỉ
     private long createdAt;
     private long lastModifiedAt;
 
@@ -39,6 +76,72 @@ public class Order {
         long now = System.currentTimeMillis();
         this.setOrderCode(String.format("%07d", now % 1046527));
         this.setCreatedAt(now);
+        this.setStatus(Status.wait_confirm);
+        this.setPrinted(false);
+    }
+
+    public boolean isPrinted() {
+        return isPrinted;
+    }
+
+    public void setPrinted(boolean isPrinted) {
+        this.isPrinted = isPrinted;
+    }
+
+    public int getCodAmount() {
+        return codAmount;
+    }
+
+    public void setCodAmount(int codAmount) {
+        this.codAmount = codAmount;
+    }
+
+    public int getPriceType() {
+        return priceType;
+    }
+
+    public void setPriceType(int priceType) {
+        this.priceType = priceType;
+    }
+
+    public long getLastModifiedAt() {
+        return lastModifiedAt;
+    }
+
+    public void setLastModifiedAt(long lastModifiedAt) {
+        this.lastModifiedAt = lastModifiedAt;
+    }
+
+    public int getTotalPrice() {
+        return totalPrice;
+    }
+
+    public void setTotalPrice(int totalPrice) {
+        this.totalPrice = totalPrice;
+    }
+
+    public List<Item> getProducts() {
+        return products;
+    }
+
+    public void setProducts(List<Item> products) {
+        this.products = products;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public String getDeliveryCode() {
+        return deliveryCode;
+    }
+
+    public void setDeliveryCode(String deliveryCode) {
+        this.deliveryCode = deliveryCode;
     }
 
     public String getNote() {
@@ -49,32 +152,8 @@ public class Order {
         this.note = note;
     }
 
-    public Order(String customerCode, String customerName, String customerPhone, String productCode,
-            String productName, String deliveryUnit, Address deliveryTo, int quantity, String note) {
-        long now = System.currentTimeMillis();
-        this.setOrderCode(String.format("%07d", now % 1046527));
-        this.setCreatedAt(now);
-        this.setCustomerCode(customerCode);
-        this.setCustomerName(customerName);
-        this.setCustomerPhone(customerPhone);
-        this.setProductCode(productCode);
-        this.setDeliveryUnit(deliveryUnit);
-        this.setDeliveryTo(deliveryTo);
-        this.setShipFee(shipFee);
-        this.setQuantity(quantity);
-        this.setNote(note);
-    }
-
     public String getId() {
         return id;
-    }
-
-    public String getProductName() {
-        return productName;
-    }
-
-    public void setProductName(String productName) {
-        this.productName = productName;
     }
 
     public String getCustomerPhone() {
@@ -109,14 +188,6 @@ public class Order {
         this.createdAt = createdAt;
     }
 
-    public int getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(int quantity) {
-        this.quantity = quantity;
-    }
-
     public Status getStatus() {
         return status;
     }
@@ -125,36 +196,28 @@ public class Order {
         this.status = status;
     }
 
-    public Double getShipFee() {
+    public int getShipFee() {
         return shipFee;
     }
 
-    public void setShipFee(Double shipFee) {
+    public void setShipFee(int shipFee) {
         this.shipFee = shipFee;
     }
 
-    public String getDeliveryUnit() {
-        return deliveryUnit;
+    public String getDeliveryUnitName() {
+        return deliveryUnitName;
     }
 
-    public void setDeliveryUnit(String deliveryUnit) {
-        this.deliveryUnit = deliveryUnit;
+    public void setDeliveryUnitName(String deliveryUnitName) {
+        this.deliveryUnitName = deliveryUnitName;
     }
 
-    public String getProductCode() {
-        return productCode;
+    public String getCustomerId() {
+        return customerId;
     }
 
-    public void setProductCode(String productCode) {
-        this.productCode = productCode;
-    }
-
-    public String getCustomerCode() {
-        return customerCode;
-    }
-
-    public void setCustomerCode(String customerCode) {
-        this.customerCode = customerCode;
+    public void setCustomerId(String customerId) {
+        this.customerId = customerId;
     }
 
     public String getOrderCode() {
@@ -165,21 +228,12 @@ public class Order {
         this.orderCode = orderCode;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-
-        Order order = (Order) o;
-
-        return this.getCustomerCode().equals(order.getCustomerCode())
-                && this.getProductCode().equals(order.getProductCode())
-                && this.getDeliveryUnit().equals(order.getDeliveryUnit())
-                && this.getDeliveryTo().equals(order.getDeliveryTo()) && this.getQuantity() == order.getQuantity()
-                && this.getShipFee().equals(order.getShipFee()) && this.getStatus().equals(order.getStatus())
-                && this.getNote().equals(order.getNote());
+    public boolean validateUser(String userId) {
+        return this.getUserId().equals(userId);
     }
 
+    public void validateRequest() {
+        if (this.getCustomerPhone() == null) throw new GlobalException("customer name not null");
+        if (this.getProducts() == null) throw new GlobalException("products not null");
+    }
 }

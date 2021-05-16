@@ -36,19 +36,19 @@ import ntq.uet.server.payload.response.*;
 @RequestMapping("/api/auth")
 public class AuthController {
 	@Autowired
-	AuthenticationManager authenticationManager;
+	private AuthenticationManager authenticationManager;
 
 	@Autowired
-	UserRepository userRepository;
+	private UserRepository userRepository;
 
 	@Autowired
-	RoleRepository roleRepository;
+	private RoleRepository roleRepository;
 
 	@Autowired
-	PasswordEncoder encoder;
+	private PasswordEncoder encoder;
 
 	@Autowired
-	JwtUtils jwtUtils;
+	private JwtUtils jwtUtils;
 
 	@PostMapping("/login")
 	public ResponseEntity<BasePageResponse<?>> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {

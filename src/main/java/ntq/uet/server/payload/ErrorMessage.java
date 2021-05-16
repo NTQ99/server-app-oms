@@ -26,6 +26,8 @@ public class ErrorMessage {
         USER_NOT_ROLE(210, "Tài khoản không có quyền truy cập!"),
         USER_UNAUTHORIZED(211, "Tài khoản thiếu token xác thực!"),
 
+        OUT_OF_STOCK(300, "Số lượng sản phẩm đã hết!"),
+
         BAD_REQUEST(400, "Không thể xử lý!"),
         UNAUTHORIZED(401, "Mã xác thực không hợp lệ!"),
         REQUEST_TIMEOUT(408, "Quá thời gian xử lý!"),
