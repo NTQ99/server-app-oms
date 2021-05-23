@@ -51,7 +51,7 @@ public class AuthController {
 	private JwtUtils jwtUtils;
 
 	@PostMapping("/login")
-	public ResponseEntity<BasePageResponse<?>> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
+	public ResponseEntity<BasePageResponse<JwtResponse>> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
 
 		try {
 			Authentication authentication = authenticationManager.authenticate(
@@ -79,7 +79,7 @@ public class AuthController {
 	}
 
 	@PostMapping("/register")
-	public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
+	public ResponseEntity<BasePageResponse<?>> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
 		if (userRepository.existsByUsername(signUpRequest.getUsername())) {
 			throw new GlobalException(ErrorMessage.StatusCode.USER_EXIST.message);
 		}

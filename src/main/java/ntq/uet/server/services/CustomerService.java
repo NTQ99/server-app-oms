@@ -31,9 +31,12 @@ public class CustomerService {
 
     public Customer getCustomerByPhone(String userId, String phone) {
         List<Customer> customers = customerRepository.findByUserId(userId);
-        if (customers.isEmpty()) return null;
-        return customers.stream().filter(customer -> customer.getCustomerPhone().equals(phone))
-                .collect(Collectors.toList()).get(0);
+        customers = customers.stream().filter(customer -> customer.getCustomerPhone().equals(phone))
+                .collect(Collectors.toList());
+        if (customers.isEmpty()) {
+            return null;
+        }
+        return customers.get(0);
     }
 
     public Page<Customer> findCustomerByPhone(String phone, Pageable paging) {

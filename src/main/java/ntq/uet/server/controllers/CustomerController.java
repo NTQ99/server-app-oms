@@ -86,7 +86,7 @@ public class CustomerController {
 
     }
 
-    @PutMapping("/create/address/{id}")
+    @PostMapping("/create/address/{id}")
     public ResponseEntity<?> addAddress(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id,
             @RequestBody Address newAddress) {
 
@@ -107,7 +107,7 @@ public class CustomerController {
 
     }
 
-    @PutMapping("/update/address/{id}/{index}")
+    @PostMapping("/update/address/{id}/{index}")
     public ResponseEntity<?> updateAddress(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id, @PathVariable("index") String index,
             @RequestBody Address newAddressData) {
 
@@ -128,7 +128,7 @@ public class CustomerController {
 
     }
 
-    @PutMapping("/delete/address/{id}/{index}")
+    @PostMapping("/delete/address/{id}/{index}")
     public ResponseEntity<?> removeAddress(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id, @PathVariable("index") String index) {
 
         String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));

@@ -24,9 +24,12 @@ public class DeliveryUnitService {
 
     public DeliveryUnit getDeliveryUnitByName(String userId, String name) {
         List<DeliveryUnit> deliveryUnits = deliveryUnitRepository.findByUserId(userId);
-        return deliveryUnits.stream()
-                .filter(deliveryUnit -> deliveryUnit.getDeliveryUnitName().equals(name))
-                .collect(Collectors.toList()).get(0);
+        deliveryUnits = deliveryUnits.stream().filter(deliveryUnit -> deliveryUnit.getDeliveryUnitName().equals(name))
+                .collect(Collectors.toList());
+        if (deliveryUnits.isEmpty()) {
+            return null;
+        }
+        return deliveryUnits.get(0);
     }
 
     public List<DeliveryUnit> getAllDeliveryUnits(String userId) {

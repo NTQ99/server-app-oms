@@ -30,8 +30,13 @@ public class ProductService {
 
     public Product getProductByName(String userId, String name) {
         List<Product> products = productRepository.findByUserId(userId);
-        return products.stream().filter(product -> product.getProductName().equals(name)).
-                collect(Collectors.toList()).get(0);
+        products = products.stream().filter(product -> product.getProductName().equals(name))
+                .collect(Collectors.toList());
+        if (products.isEmpty()) {
+            return null;
+        }
+
+        return products.get(0);
     }
 
     public Page<Product> findProductByName(String name, Pageable paging) {

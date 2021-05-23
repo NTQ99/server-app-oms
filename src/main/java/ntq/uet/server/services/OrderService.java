@@ -35,11 +35,13 @@ public class OrderService {
 
         if (orderData.getProducts() == null) throw new GlobalException("products not null");
 
+        int totalPrice = 0;
         for (Order.Item item : orderData.getProducts()) {
             Product product = productService.getProductByName(orderData.getUserId(), item.getProductName());
             if (product == null) {
                 throw new GlobalException("not found product with name: " + item.getProductName());
             } else item.setProductId(product.getId());
+            totalPrice += product.getPrice()[orderData.getPriceType()] *item.getQuantity();
         }
 
         Customer customerData = customerService.getCustomerByPhone(orderData.getUserId(), orderData.getCustomerPhone());
@@ -51,6 +53,9 @@ public class OrderService {
             orderData.setCustomerId(customerData.getId());
             customerService.addCustomerAddress(customerData, orderData.getDeliveryTo());
         }
+
+        if (orderData.getTotalPrice() == 0) orderData.setTotalPrice(totalPrice);
+        if (orderData.getCodAmount() == -1) orderData.setCodAmount(totalPrice);
 
         return orderRepository.save(orderData);
     }
@@ -167,7 +172,7 @@ public class OrderService {
         orderRepository.deleteByUserId(userId);
     }
 
-    public void sendOrder(Order order, Delivery delivery) {
+    public Order sendOrder(Order order, Delivery delivery) {
 
         List<Product> products = new ArrayList<>();
         if (order.getProducts() == null)
@@ -198,7 +203,7 @@ public class OrderService {
             order.setDeliveryCode(
                     deliveryService.GHNCreateOrder(deliveryUnit.getToken(), deliveryUnit.getShopId(), delivery));
             order.setStatus(Order.Status.await_trans);
-            orderRepository.save(order);
+            return orderRepository.save(order);
         } else
             throw new GlobalException("delivery unit unavailable");
     }

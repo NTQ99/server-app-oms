@@ -32,7 +32,7 @@ public class OrderController {
     private JwtUtils jwtUtils;
 
     @PostMapping("/get")
-    public ResponseEntity<?> getAll(@RequestHeader("Authorization") String jwt) {
+    public ResponseEntity<BasePageResponse<List<Order>>> getAll(@RequestHeader("Authorization") String jwt) {
 
         String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
 
@@ -43,7 +43,7 @@ public class OrderController {
     }
 
     @PostMapping("/get/{id}")
-    public ResponseEntity<?> getById(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id) {
+    public ResponseEntity<BasePageResponse<Order>> getById(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id) {
 
         String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
 
@@ -56,7 +56,7 @@ public class OrderController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<?> create(@RequestHeader("Authorization") String jwt, @RequestBody Order orderData) {
+    public ResponseEntity<BasePageResponse<Order>> create(@RequestHeader("Authorization") String jwt, @RequestBody Order orderData) {
 
         String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
         
@@ -66,8 +66,23 @@ public class OrderController {
 
     }
 
+    /**
+     * 
+     * @param userId id của tài khoản sở hữu
+     * @param orderData Thông tin đơn hàng
+     * @return Thông tin đơn hàng đã tạo
+     */
+    @PostMapping("/create/{idUser}")
+    public ResponseEntity<BasePageResponse<Order>> openAPICreate(@PathVariable("idUser") String userId, @RequestBody Order orderData) {
+
+        orderData.setUserId(userId);
+        BasePageResponse<Order> response = new BasePageResponse<>(service.createOrder(orderData), ErrorMessage.StatusCode.CREATED.message);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+
+    }
+
     @PostMapping("/update/{id}")
-    public ResponseEntity<?> update(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id,
+    public ResponseEntity<BasePageResponse<Order>> update(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id,
             @RequestBody Order newOrderData) {
 
         String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
@@ -88,7 +103,7 @@ public class OrderController {
     }
 
     @PostMapping("/delete/{id}")
-    public ResponseEntity<?> delete(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id) {
+    public ResponseEntity<BasePageResponse<?>> delete(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id) {
 
         String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
 
@@ -103,24 +118,24 @@ public class OrderController {
         }
 
         service.deleteOrder(id);
-        BasePageResponse<Order> response = new BasePageResponse<>(null, ErrorMessage.StatusCode.OK.message);
+        BasePageResponse<?> response = new BasePageResponse<>(null, ErrorMessage.StatusCode.OK.message);
         return new ResponseEntity<>(response, HttpStatus.OK);
 
     }
 
     @PostMapping("/delete")
-    public ResponseEntity<?> deleteAll(@RequestHeader("Authorization") String jwt) {
+    public ResponseEntity<BasePageResponse<?>> deleteAll(@RequestHeader("Authorization") String jwt) {
 
         String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
 
         service.deleteAllOrders(userId);
-        BasePageResponse<Order> response = new BasePageResponse<>(null, ErrorMessage.StatusCode.OK.message);
+        BasePageResponse<?> response = new BasePageResponse<>(null, ErrorMessage.StatusCode.OK.message);
         return new ResponseEntity<>(response, HttpStatus.OK);
 
     }
 
     @PostMapping("/delivery/{id}")
-    public ResponseEntity<?> sendOrder(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id,
+    public ResponseEntity<BasePageResponse<Order>> sendOrder(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id,
             @RequestBody Delivery delivery) {
 
         String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
@@ -135,14 +150,13 @@ public class OrderController {
             throw new GlobalException(ErrorMessage.StatusCode.UNAUTHORIZED.message);
         }
 
-        service.sendOrder(order, delivery);
-        BasePageResponse<?> response = new BasePageResponse<>(null, ErrorMessage.StatusCode.OK.message);
+        BasePageResponse<Order> response = new BasePageResponse<>(service.sendOrder(order, delivery), ErrorMessage.StatusCode.OK.message);
         return new ResponseEntity<>(response, HttpStatus.OK);
 
     }
 
     @PostMapping("/update/status/{id}")
-    public ResponseEntity<?> updateStatus(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id,
+    public ResponseEntity<BasePageResponse<?>> updateStatus(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id,
             @RequestBody(required = false) Object request) {
 
         String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
@@ -170,7 +184,7 @@ public class OrderController {
     }
 
     @PostMapping("/delivery/print/{id}")
-    public ResponseEntity<?> printOrder(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id) {
+    public ResponseEntity<BasePageResponse<String>> printOrder(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id) {
 
         String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
 
@@ -184,14 +198,14 @@ public class OrderController {
             throw new GlobalException(ErrorMessage.StatusCode.UNAUTHORIZED.message);
         }
 
-        BasePageResponse<?> response = new BasePageResponse<>(service.getPrintOrdersLink(Arrays.asList(order)),
+        BasePageResponse<String> response = new BasePageResponse<>(service.getPrintOrdersLink(Arrays.asList(order)),
                 ErrorMessage.StatusCode.OK.message);
         return new ResponseEntity<>(response, HttpStatus.OK);
 
     }
 
     @PostMapping("/print")
-    public ResponseEntity<?> printAllOrder(@RequestHeader("Authorization") String jwt) {
+    public ResponseEntity<BasePageResponse<String>> printAllOrder(@RequestHeader("Authorization") String jwt) {
 
         String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
 
@@ -209,7 +223,7 @@ public class OrderController {
             throw new GlobalException("Tất cả các đơn hàng đã được in phiếu!");
         }
 
-        BasePageResponse<?> response = new BasePageResponse<>(service.getPrintOrdersLink(orders),
+        BasePageResponse<String> response = new BasePageResponse<>(service.getPrintOrdersLink(orders),
                 ErrorMessage.StatusCode.OK.message);
         return new ResponseEntity<>(response, HttpStatus.OK);
 

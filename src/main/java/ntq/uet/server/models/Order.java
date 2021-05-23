@@ -65,7 +65,7 @@ public class Order {
     private Address deliveryTo;
     private int shipFee;
     private int totalPrice;
-    private int codAmount;
+    private int codAmount; // -1: bằng totalPrice
     private boolean isPrinted;
     private Status status;
     private int priceType; // 0: giá vốn, 1: giá lẻ, 2: giá sỉ
