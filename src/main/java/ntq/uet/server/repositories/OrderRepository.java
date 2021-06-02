@@ -11,6 +11,7 @@ import ntq.uet.server.models.Order;
 public interface OrderRepository extends MongoRepository<Order, String> {
     Order findByOrderCode(String code);
     List<Order> findByUserId(String userId);
+    List<Order> findByCustomerId(String customerId);
     Page<Order> findByCustomerNameContainingIgnoreCase(String name, Pageable paging);
     Page<Order> findByCustomerPhoneContaining(String phone, Pageable paging);
     Page<Order> findByStatus(String status, Pageable paging);

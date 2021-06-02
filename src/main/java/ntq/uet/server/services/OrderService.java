@@ -64,6 +64,10 @@ public class OrderService {
         return orderRepository.findById(id).orElse(null);
     }
 
+    public List<Order> getOrderByCustomerId(String id) {
+        return orderRepository.findByCustomerId(id);
+    }
+
     public Order getOrderByCode(String code) {
         return orderRepository.findByOrderCode(code);
     }

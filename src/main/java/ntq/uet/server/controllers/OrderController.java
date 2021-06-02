@@ -55,6 +55,21 @@ public class OrderController {
 
     }
 
+    @PostMapping("/get/customer/{id}")
+    public ResponseEntity<BasePageResponse<List<Order>>> getByCustomerId(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id) {
+
+        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+
+        List<Order> orders = service.getOrderByCustomerId(id);
+
+        for (Order order: orders) {
+            if (!order.validateUser(userId)) throw new GlobalException(ErrorMessage.StatusCode.UNAUTHORIZED.message);
+        }
+
+        return new ResponseEntity<>(new BasePageResponse<>(orders, ErrorMessage.StatusCode.OK.message), HttpStatus.OK);
+
+    }
+
     @PostMapping("/create")
     public ResponseEntity<BasePageResponse<Order>> create(@RequestHeader("Authorization") String jwt, @RequestBody Order orderData) {
 
