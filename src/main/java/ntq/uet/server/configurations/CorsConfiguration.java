@@ -14,7 +14,7 @@ public class CorsConfiguration
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**").allowedOrigins("http://localhost:3000");
+                registry.addMapping("/**").allowedOrigins("http://localhost:3000", "https://oms-2021.web.app", "https://oms-app-2021.herokuapp.com");
             }
         };
     }
