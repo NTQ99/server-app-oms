@@ -8,11 +8,13 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import lombok.*;
 import ntq.uet.server.exceptions.GlobalException;
 
 // customer model
 @Document(collection = "customers")
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Getter @Setter
 public class Customer {
 
     @Id
@@ -21,8 +23,12 @@ public class Customer {
     private String userId;
     private String customerCode;
     private String customerName;
-    private List<Address> customerAddresses = new ArrayList<>();
+    private String customerGender;
+    private String customerEmail;
     private String customerPhone;
+    private String customerFacebook;
+    private int defaultAddressId;
+    private List<Address> customerAddresses = new ArrayList<>();
     private long createdAt;
 
     public Customer() {
@@ -30,14 +36,6 @@ public class Customer {
         this.setCustomerCode(String.format("%07d", now % 1046527));
         this.setCreatedAt(now);
     };
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
 
     public Customer(String userId, String customerName, String customerPhone) {
         long now = System.currentTimeMillis();
@@ -47,34 +45,6 @@ public class Customer {
         this.setCustomerName(customerName);
         this.setCustomerPhone(customerPhone);
     };
-
-    public String getId() {
-        return id;
-    }
-
-    public long getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(long createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public String getCustomerPhone() {
-        return customerPhone;
-    }
-
-    public void setCustomerPhone(String customerPhone) {
-        this.customerPhone = customerPhone;
-    }
-
-    public List<Address> getCustomerAddresses() {
-        return customerAddresses;
-    }
-
-    public void setCustomerAddresses(List<Address> customerAddresses) {
-        this.customerAddresses = customerAddresses;
-    }
 
     public void addCustomerAddress(Address customerAddress) {
         if (!this.customerAddresses.contains(customerAddress)) {
@@ -90,22 +60,6 @@ public class Customer {
     
     public void removeCustomerAddress(int index) {
         this.customerAddresses.remove(index);
-    }
-
-    public String getCustomerName() {
-        return customerName;
-    }
-
-    public void setCustomerName(String customerName) {
-        this.customerName = customerName;
-    }
-
-    public String getCustomerCode() {
-        return customerCode;
-    }
-
-    public void setCustomerCode(String customerCode) {
-        this.customerCode = customerCode;
     }
 
     @Override

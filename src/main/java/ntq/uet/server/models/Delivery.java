@@ -4,43 +4,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ntq.uet.server.exceptions.GlobalException;
+import lombok.*;
 
+@Getter @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Delivery {
+
+    @Getter @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class Item {
-        public Item(String name, String code, int quantity, int price) {
-            this.name = name;
-            this.code = code;
-            this.quantity = quantity;
-            this.price = price;
-        }
+        
         private String name; // Tên của sản phẩm.
         private String code; // Mã của sản phẩm.
         private int quantity; // Số lượng của sản phẩm.
         private int price; // Giá của sản phẩm.
-        public String getName() {
-            return name;
-        }
-        public int getPrice() {
-            return price;
-        }
-        public void setPrice(int price) {
-            this.price = price;
-        }
-        public int getQuantity() {
-            return quantity;
-        }
-        public void setQuantity(int quantity) {
-            this.quantity = quantity;
-        }
-        public String getCode() {
-            return code;
-        }
-        public void setCode(String code) {
-            this.code = code;
-        }
-        public void setName(String name) {
-            this.name = name;
-        }
     }
 
     private String deliveryUnitName;//  #
@@ -67,190 +46,6 @@ public class Delivery {
     private List<Integer> pick_shift; // Dùng để truyền ca lấy hàng , Sử dụng API Lấy danh sách ca lấy
     private List<Item> items; // Thông tin sản phẩm.    #
     
-    public String getDeliveryUnitName() {
-        return deliveryUnitName;
-    }
-
-    public List<Item> getItems() {
-        return items;
-    }
-
-    public void setItems(List<Item> items) {
-        this.items = items;
-    }
-
-    public List<Integer> getPick_shift() {
-        return pick_shift;
-    }
-
-    public void setPick_shift(List<Integer> pick_shift) {
-        this.pick_shift = pick_shift;
-    }
-
-    public String getRequired_note() {
-        return required_note;
-    }
-
-    public void setRequired_note(String required_note) {
-        this.required_note = required_note;
-    }
-
-    public String getNote() {
-        return note;
-    }
-
-    public void setNote(String note) {
-        this.note = note;
-    }
-
-    public int getPayment_type_id() {
-        return payment_type_id;
-    }
-
-    public void setPayment_type_id(int payment_type_id) {
-        this.payment_type_id = payment_type_id;
-    }
-
-    public int getService_id() {
-        return service_id;
-    }
-
-    public void setService_id(int service_id) {
-        this.service_id = service_id;
-    }
-
-    public int getService_type_id() {
-        return service_type_id;
-    }
-
-    public void setService_type_id(int service_type_id) {
-        this.service_type_id = service_type_id;
-    }
-
-    public String getCoupon() {
-        return coupon;
-    }
-
-    public void setCoupon(String coupon) {
-        this.coupon = coupon;
-    }
-
-    public int getInsurance_value() {
-        return insurance_value;
-    }
-
-    public void setInsurance_value(int insurance_value) {
-        this.insurance_value = insurance_value;
-    }
-
-    public int getPick_station_id() {
-        return pick_station_id;
-    }
-
-    public void setPick_station_id(int pick_station_id) {
-        this.pick_station_id = pick_station_id;
-    }
-
-    public int getHeight() {
-        return height;
-    }
-
-    public void setHeight(int height) {
-        this.height = height;
-    }
-
-    public int getWidth() {
-        return width;
-    }
-
-    public void setWidth(int width) {
-        this.width = width;
-    }
-
-    public int getLength() {
-        return length;
-    }
-
-    public void setLength(int length) {
-        this.length = length;
-    }
-
-    public int getWeight() {
-        return weight;
-    }
-
-    public void setWeight(int weight) {
-        this.weight = weight;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public int getCod_amount() {
-        return cod_amount;
-    }
-
-    public void setCod_amount(int cod_amount) {
-        this.cod_amount = cod_amount;
-    }
-
-    public String getClient_order_code() {
-        return client_order_code;
-    }
-
-    public void setClient_order_code(String client_order_code) {
-        this.client_order_code = client_order_code;
-    }
-
-    public int getTo_district_id() {
-        return to_district_id;
-    }
-
-    public void setTo_district_id(int to_district_id) {
-        this.to_district_id = to_district_id;
-    }
-
-    public String getTo_ward_code() {
-        return to_ward_code;
-    }
-
-    public void setTo_ward_code(String to_ward_code) {
-        this.to_ward_code = to_ward_code;
-    }
-
-    public String getTo_address() {
-        return to_address;
-    }
-
-    public void setTo_address(String to_address) {
-        this.to_address = to_address;
-    }
-
-    public String getTo_phone() {
-        return to_phone;
-    }
-
-    public void setTo_phone(String to_phone) {
-        this.to_phone = to_phone;
-    }
-
-    public String getTo_name() {
-        return to_name;
-    }
-
-    public void setTo_name(String to_name) {
-        this.to_name = to_name;
-    }
-
-    public void setDeliveryUnitName(String deliveryUnitName) {
-        this.deliveryUnitName = deliveryUnitName;
-    }
-
     public void setRequest(List<Product> products, Order order) {
         List<Item> tmpItems = new ArrayList<Item>();
         int totalWeight = 0;
