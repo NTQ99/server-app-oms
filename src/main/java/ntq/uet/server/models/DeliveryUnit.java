@@ -4,8 +4,12 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import ntq.uet.server.exceptions.GlobalException;
+import lombok.*;
 
 @Document(collection = "deliveryUnits")
+@Getter @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class DeliveryUnit {
     @Id
     private String id;
@@ -21,57 +25,6 @@ public class DeliveryUnit {
         this.deliveryUnitName = deliveryUnitName;
         this.token = token;
         this.shopId = shopId;
-    }
-
-    public DeliveryUnit() {
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public String getShopId() {
-        return shopId;
-    }
-
-    public void setShopId(String shopId) {
-        this.shopId = shopId;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
-    }
-
-    public String getAppId() {
-        return appId;
-    }
-
-    public void setAppId(String appId) {
-        this.appId = appId;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getDeliveryUnitName() {
-        return deliveryUnitName;
-    }
-    
-    public void setDeliveryUnitName(String deliveryUnitName) {
-        this.deliveryUnitName = deliveryUnitName;
     }
 
     public boolean validateUser(String userId) {

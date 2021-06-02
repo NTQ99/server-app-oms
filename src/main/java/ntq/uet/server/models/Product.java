@@ -5,10 +5,14 @@ import java.util.List;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import lombok.*;
 import ntq.uet.server.exceptions.GlobalException;
 
 @Document(collection = "products")
+@Getter @Setter
+@AllArgsConstructor
 public class Product {
+
     @Id
     private String id;
 
@@ -28,90 +32,6 @@ public class Product {
         this.setProductCode(String.format("%07d", now % 1046527));
         this.setCreatedAt(now);
     };
-
-    public int[] getPrice() {
-        return price;
-    }
-
-    public void setPrice(int[] price) {
-        this.price = price;
-    }
-
-    public int getStock() {
-        return stock;
-    }
-
-    public void setStock(int stock) {
-        this.stock = stock;
-    }
-
-    public int getWeight() {
-        return weight;
-    }
-
-    public void setWeight(int weight) {
-        this.weight = weight;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public long getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(long createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public double getPromotion() {
-        return promotion;
-    }
-
-    public void setPromotion(double promotion) {
-        this.promotion = promotion;
-    }
-
-    public List<String> getProductPhotos() {
-        return productPhotos;
-    }
-
-    public void setProductPhotos(List<String> productPhotos) {
-        this.productPhotos = productPhotos;
-    }
-
-    public String getProductDetail() {
-        return productDetail;
-    }
-
-    public void setProductDetail(String productDetail) {
-        this.productDetail = productDetail;
-    }
-
-    public String getProductName() {
-        return productName;
-    }
-
-    public void setProductName(String productName) {
-        this.productName = productName;
-    }
-
-    public String getProductCode() {
-        return productCode;
-    }
-
-    public void setProductCode(String productCode) {
-        this.productCode = productCode;
-    }
 
     public boolean validateUser(String userId) {
         return this.getUserId().equals(userId);
