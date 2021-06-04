@@ -52,7 +52,7 @@ public class CustomerService {
         customerData.setCustomerName(newCustomerData.getCustomerName());
         customerData.setCustomerGender(newCustomerData.getCustomerGender());
         customerData.setCustomerPhone(newCustomerData.getCustomerPhone());
-        customerData.setCustomerCode(newCustomerData.getCustomerEmail());
+        customerData.setCustomerEmail(newCustomerData.getCustomerEmail());
         customerData.setCustomerFacebook(newCustomerData.getCustomerFacebook());
         customerData.setCustomerAddresses(newCustomerData.getCustomerAddresses());
         customerData.setDefaultAddressId(newCustomerData.getDefaultAddressId());
