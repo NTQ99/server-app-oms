@@ -194,7 +194,7 @@ public class OrderService {
             products.add(product);
         }
 
-        DeliveryUnit deliveryUnit = deliveryUnitService.getDeliveryUnitByName(order.getUserId(), order.getDeliveryUnitName());
+        DeliveryUnit deliveryUnit = deliveryUnitService.getDeliveryUnitByName(order.getUserId(), delivery.getDeliveryUnitName());
         if (deliveryUnit == null)
             throw new GlobalException("delivery unit not found with name: " + order.getDeliveryUnitName());
 
@@ -207,6 +207,7 @@ public class OrderService {
             order.setDeliveryCode(
                     deliveryService.GHNCreateOrder(deliveryUnit.getToken(), deliveryUnit.getShopId(), delivery));
             order.setStatus(Order.Status.await_trans);
+            order.setDeliveryUnitName(delivery.getDeliveryUnitName());
             return orderRepository.save(order);
         } else
             throw new GlobalException("delivery unit unavailable");
