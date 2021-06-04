@@ -50,7 +50,12 @@ public class CustomerService {
     public Customer updateCustomer(Customer customerData, Customer newCustomerData) {
 
         customerData.setCustomerName(newCustomerData.getCustomerName());
+        customerData.setCustomerGender(newCustomerData.getCustomerGender());
         customerData.setCustomerPhone(newCustomerData.getCustomerPhone());
+        customerData.setCustomerCode(newCustomerData.getCustomerEmail());
+        customerData.setCustomerFacebook(newCustomerData.getCustomerFacebook());
+        customerData.setCustomerAddresses(newCustomerData.getCustomerAddresses());
+        customerData.setDefaultAddressId(newCustomerData.getDefaultAddressId());
 
         return customerRepository.save(customerData);
     }
