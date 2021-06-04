@@ -23,9 +23,9 @@ public class Customer {
     private String userId;
     private String customerCode;
     private String customerName;
-    private String customerGender;
-    private String customerEmail;
+    private int customerGender; //0: khác 1: nam 2: nữ
     private String customerPhone;
+    private String customerEmail;
     private String customerFacebook;
     private int defaultAddressId;
     private List<Address> customerAddresses = new ArrayList<>();
