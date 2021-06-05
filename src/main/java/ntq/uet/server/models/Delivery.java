@@ -45,6 +45,8 @@ public class Delivery {
     private String required_note; // Ghi chú bắt buộc, Bao gồm: CHOTHUHANG, CHOXEMHANGKHONGTHU, KHONGCHOXEMHANG
     private List<Integer> pick_shift; // Dùng để truyền ca lấy hàng , Sử dụng API Lấy danh sách ca lấy
     private List<Item> items; // Thông tin sản phẩm.    #
+
+    private int shipFee;
     
     public void setRequest(List<Product> products, Order order) {
         List<Item> tmpItems = new ArrayList<Item>();
