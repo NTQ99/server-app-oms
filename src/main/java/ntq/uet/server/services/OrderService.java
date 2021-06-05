@@ -208,6 +208,7 @@ public class OrderService {
                     deliveryService.GHNCreateOrder(deliveryUnit.getToken(), deliveryUnit.getShopId(), delivery));
             order.setStatus(Order.Status.await_trans);
             order.setDeliveryUnitName(delivery.getDeliveryUnitName());
+            order.setShipFee(delivery.getShipFee());
             return orderRepository.save(order);
         } else
             throw new GlobalException("delivery unit unavailable");
