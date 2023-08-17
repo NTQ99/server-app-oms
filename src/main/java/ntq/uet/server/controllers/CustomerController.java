@@ -2,6 +2,9 @@ package ntq.uet.server.controllers;
 
 import java.util.List;
 
+import ntq.uet.server.common.base.RequestContext;
+import ntq.uet.server.common.base.ServiceHeader;
+import ntq.uet.server.common.core.constant.CommonConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,9 +18,13 @@ import ntq.uet.server.payload.ErrorMessage;
 import ntq.uet.server.security.jwt.JwtUtils;
 import ntq.uet.server.services.CustomerService;
 
+import javax.servlet.http.HttpServletRequest;
+
 @RestController
 @RequestMapping("/api/customer")
-public class CustomerController {
+public class
+
+CustomerController {
 
     @Autowired
     private CustomerService service;
@@ -25,9 +32,11 @@ public class CustomerController {
 	private JwtUtils jwtUtils;
 
     @PostMapping("/get")
-    public ResponseEntity<?> getAll(@RequestHeader("Authorization") String jwt) {
+    public ResponseEntity<?> getAll(HttpServletRequest httpServletRequest) {
+        ServiceHeader serviceHeader = (ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER);
+        RequestContext ctx = RequestContext.init(serviceHeader);
 
-        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+        String userId = ctx.getAuthenticationId();
 
         List<Customer> customers = service.getAllCustomers(userId);
 
