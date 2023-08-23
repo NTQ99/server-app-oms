@@ -3,6 +3,10 @@ package ntq.uet.server.controllers;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
+import ntq.uet.server.common.base.RequestContext;
+import ntq.uet.server.common.base.ServiceHeader;
+import ntq.uet.server.common.core.constant.CommonConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,18 +25,16 @@ import ntq.uet.server.payload.ErrorMessage;
 import ntq.uet.server.security.jwt.JwtUtils;
 import ntq.uet.server.services.UserService;
 
+import javax.servlet.http.HttpServletRequest;
+
 @RestController
 @RequestMapping("/api/user")
+@RequiredArgsConstructor
 public class UserController {
 
-	@Autowired
-	private UserService service;
-
-	@Autowired
-	private PasswordEncoder encoder;
-
-	@Autowired
-	private JwtUtils jwtUtils;
+	private final UserService service;
+	private final PasswordEncoder encoder;
+	private final HttpServletRequest httpServletRequest;
 
 	@PostMapping("/get")
 	@PreAuthorize("hasRole('ADMIN')")
@@ -56,9 +58,11 @@ public class UserController {
 	}
 
 	@PostMapping("/get/info")
-	public ResponseEntity<BasePageResponse<User>> getUseInfor(@RequestHeader("Authorization") String jwt) {
+	public ResponseEntity<BasePageResponse<User>> getUserInfo() {
 
-		String id = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+		RequestContext ctx = RequestContext.init((ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER));
+
+        String id = ctx.getAuthenticationId();
 		User userData = service.getUserById(id);
 		if (userData == null) {
 			throw new GlobalException(ErrorMessage.StatusCode.USER_NOT_FOUND.message);
@@ -72,9 +76,11 @@ public class UserController {
 	}
 
 	@PostMapping("/update/info")
-	public ResponseEntity<BasePageResponse<User>> updateUseInfor(@RequestHeader("Authorization") String jwt, @RequestBody User newUserData) {
+	public ResponseEntity<BasePageResponse<User>> updateUserInfo(@RequestBody User newUserData) {
 
-		String id = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+		RequestContext ctx = RequestContext.init((ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER));
+
+        String id = ctx.getAuthenticationId();
 		User currUserData = service.getUserById(id);
 		if (currUserData == null) {
 			throw new GlobalException(ErrorMessage.StatusCode.USER_NOT_FOUND.message);
@@ -87,9 +93,11 @@ public class UserController {
 	}
 
 	@PostMapping("/update/password")
-	public ResponseEntity<BasePageResponse<User>> updateUserPassword(@RequestHeader("Authorization") String jwt, @RequestBody User newUserData) {
+	public ResponseEntity<BasePageResponse<User>> updateUserPassword(@RequestBody User newUserData) {
 
-		String id = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+		RequestContext ctx = RequestContext.init((ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER));
+
+        String id = ctx.getAuthenticationId();
 		User currUserData = service.getUserById(id);
 		if (currUserData == null) {
 			throw new GlobalException(ErrorMessage.StatusCode.USER_NOT_FOUND.message);

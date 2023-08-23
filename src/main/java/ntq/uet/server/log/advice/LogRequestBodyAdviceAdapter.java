@@ -1,7 +1,9 @@
 package ntq.uet.server.log.advice;
 
 import java.lang.reflect.Type;
+import javax.servlet.DispatcherType;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import ntq.uet.server.common.base.ServiceHeader;
 import ntq.uet.server.common.core.constant.CommonConstants;
@@ -13,10 +15,11 @@ import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.mvc.method.annotation.RequestBodyAdviceAdapter;
 
 @ControllerAdvice
-public class LogRequestBodyAdviceAdapter extends RequestBodyAdviceAdapter {
+public class LogRequestBodyAdviceAdapter extends RequestBodyAdviceAdapter implements HandlerInterceptor {
     private static final Logger log = LogManager.getLogger(LogRequestBodyAdviceAdapter.class);
     @Autowired
     private HttpServletRequest httpServletRequest;
@@ -45,5 +48,16 @@ public class LogRequestBodyAdviceAdapter extends RequestBodyAdviceAdapter {
         ThreadContext.put(CommonConstants.TRACE_ID, serviceHeader.getServiceMessageId());
 
         return super.afterBodyRead(body, inputMessage, parameter, targetType, converterType);
+    }
+
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        if (DispatcherType.REQUEST.name().equals(request.getDispatcherType().name())) {
+            ServiceHeader serviceHeader = ServiceHeaderUtil.createServiceHeader(request);
+            request.setAttribute(CommonConstants.SERVICE_HEADER, serviceHeader);
+            log.info(serviceHeader.toString());
+        }
+
+        return true;
     }
 }

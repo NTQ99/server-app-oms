@@ -2,6 +2,10 @@ package ntq.uet.server.controllers;
 
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
+import ntq.uet.server.common.base.RequestContext;
+import ntq.uet.server.common.base.ServiceHeader;
+import ntq.uet.server.common.core.constant.CommonConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,19 +18,22 @@ import ntq.uet.server.payload.ErrorMessage;
 import ntq.uet.server.security.jwt.JwtUtils;
 import ntq.uet.server.services.ProductService;
 
+import javax.servlet.http.HttpServletRequest;
+
 @RestController
 @RequestMapping("/api/product")
+@RequiredArgsConstructor
 public class ProductController {
 
-    @Autowired
-    private ProductService service;
-    @Autowired
-	private JwtUtils jwtUtils;
+    private final ProductService service;
+    private final HttpServletRequest httpServletRequest;
 
     @PostMapping("/get")
-    public ResponseEntity<?> getAll(@RequestHeader("Authorization") String jwt) {
+    public ResponseEntity<?> getAll() {
 
-        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+        RequestContext ctx = RequestContext.init((ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER));
+
+        String userId = ctx.getAuthenticationId();
 
         List<Product> products = service.getAllProducts(userId);
 
@@ -35,9 +42,11 @@ public class ProductController {
     }
 
     @PostMapping("/get/{id}")
-    public ResponseEntity<?> getById(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id) {
+    public ResponseEntity<?> getById(@PathVariable("id") String id) {
 
-        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+        RequestContext ctx = RequestContext.init((ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER));
+
+        String userId = ctx.getAuthenticationId();
 
         Product product = service.getProductById(id);
 
@@ -48,9 +57,11 @@ public class ProductController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<?> create(@RequestHeader("Authorization") String jwt, @RequestBody Product productData) {
+    public ResponseEntity<?> create(@RequestBody Product productData) {
 
-        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+        RequestContext ctx = RequestContext.init((ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER));
+
+        String userId = ctx.getAuthenticationId();
         
         Product currProductData = service.getProductByName(userId, productData.getProductName());
 
@@ -65,10 +76,12 @@ public class ProductController {
     }
 
     @PostMapping("/update/{id}")
-    public ResponseEntity<?> update(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id,
+    public ResponseEntity<?> update(@PathVariable("id") String id,
             @RequestBody Product newProductData) {
 
-        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+        RequestContext ctx = RequestContext.init((ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER));
+
+        String userId = ctx.getAuthenticationId();
 
         Product currProductData = service.getProductById(id);
 
@@ -86,9 +99,11 @@ public class ProductController {
     }
 
     @PostMapping("/delete/{id}")
-    public ResponseEntity<?> delete(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id) {
+    public ResponseEntity<?> delete(@PathVariable("id") String id) {
 
-        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+        RequestContext ctx = RequestContext.init((ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER));
+
+        String userId = ctx.getAuthenticationId();
 
         Product currDeliveryData = service.getProductById(id);
 
@@ -107,9 +122,11 @@ public class ProductController {
     }
 
     @PostMapping("/delete")
-    public ResponseEntity<?> deleteAll(@RequestHeader("Authorization") String jwt) {
+    public ResponseEntity<?> deleteAll() {
 
-        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+        RequestContext ctx = RequestContext.init((ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER));
+
+        String userId = ctx.getAuthenticationId();
 
         service.deleteAllProducts(userId);
         BasePageResponse<Product> response = new BasePageResponse<>(null, ErrorMessage.StatusCode.OK.message);

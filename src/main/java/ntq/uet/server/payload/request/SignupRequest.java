@@ -1,10 +1,12 @@
 package ntq.uet.server.payload.request;
 
+import ntq.uet.server.common.base.BaseObject;
+
 import java.util.Set;
 
 import javax.validation.constraints.*;
  
-public class SignupRequest {
+public class SignupRequest extends BaseObject {
     @NotBlank
     @Size(min = 3, max = 20)
     private String username;

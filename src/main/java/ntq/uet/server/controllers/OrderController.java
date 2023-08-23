@@ -8,6 +8,10 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import lombok.RequiredArgsConstructor;
+import ntq.uet.server.common.base.RequestContext;
+import ntq.uet.server.common.base.ServiceHeader;
+import ntq.uet.server.common.core.constant.CommonConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,20 +25,22 @@ import ntq.uet.server.payload.ErrorMessage;
 import ntq.uet.server.security.jwt.JwtUtils;
 import ntq.uet.server.services.OrderService;
 
+import javax.servlet.http.HttpServletRequest;
+
 @RestController
 @RequestMapping("/api/order")
+@RequiredArgsConstructor
 public class OrderController {
 
-    @Autowired
-    private OrderService service;
-
-    @Autowired
-    private JwtUtils jwtUtils;
+    private final OrderService service;
+    private final HttpServletRequest httpServletRequest;
 
     @PostMapping("/get")
-    public ResponseEntity<BasePageResponse<List<Order>>> getAll(@RequestHeader("Authorization") String jwt) {
+    public ResponseEntity<BasePageResponse<List<Order>>> getAll() {
 
-        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+        RequestContext ctx = RequestContext.init((ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER));
+
+        String userId = ctx.getAuthenticationId();
 
         List<Order> orders = service.getAllOrders(userId);
 
@@ -43,9 +49,11 @@ public class OrderController {
     }
 
     @PostMapping("/get/{id}")
-    public ResponseEntity<BasePageResponse<Order>> getById(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id) {
+    public ResponseEntity<BasePageResponse<Order>> getById(@PathVariable("id") String id) {
 
-        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+        RequestContext ctx = RequestContext.init((ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER));
+
+        String userId = ctx.getAuthenticationId();
 
         Order order = service.getOrderById(id);
 
@@ -56,9 +64,11 @@ public class OrderController {
     }
 
     @PostMapping("/get/customer/{id}")
-    public ResponseEntity<BasePageResponse<List<Order>>> getByCustomerId(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id) {
+    public ResponseEntity<BasePageResponse<List<Order>>> getByCustomerId(@PathVariable("id") String id) {
 
-        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+        RequestContext ctx = RequestContext.init((ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER));
+
+        String userId = ctx.getAuthenticationId();
 
         List<Order> orders = service.getOrderByCustomerId(id);
 
@@ -71,9 +81,11 @@ public class OrderController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<BasePageResponse<Order>> create(@RequestHeader("Authorization") String jwt, @RequestBody Order orderData) {
+    public ResponseEntity<BasePageResponse<Order>> create(@RequestBody Order orderData) {
 
-        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+        RequestContext ctx = RequestContext.init((ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER));
+
+        String userId = ctx.getAuthenticationId();
         
         orderData.setUserId(userId);
         BasePageResponse<Order> response = new BasePageResponse<>(service.createOrder(orderData), ErrorMessage.StatusCode.CREATED.message);
@@ -97,10 +109,12 @@ public class OrderController {
     }
 
     @PostMapping("/update/{id}")
-    public ResponseEntity<BasePageResponse<Order>> update(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id,
+    public ResponseEntity<BasePageResponse<Order>> update(@PathVariable("id") String id,
             @RequestBody Order newOrderData) {
 
-        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+        RequestContext ctx = RequestContext.init((ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER));
+
+        String userId = ctx.getAuthenticationId();
 
         Order currOrderData = service.getOrderById(id);
 
@@ -118,9 +132,11 @@ public class OrderController {
     }
 
     @PostMapping("/delete/{id}")
-    public ResponseEntity<BasePageResponse<?>> delete(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id) {
+    public ResponseEntity<BasePageResponse<?>> delete(@PathVariable("id") String id) {
 
-        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+        RequestContext ctx = RequestContext.init((ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER));
+
+        String userId = ctx.getAuthenticationId();
 
         Order currDeliveryData = service.getOrderById(id);
 
@@ -139,9 +155,11 @@ public class OrderController {
     }
 
     @PostMapping("/delete")
-    public ResponseEntity<BasePageResponse<?>> deleteAll(@RequestHeader("Authorization") String jwt) {
+    public ResponseEntity<BasePageResponse<?>> deleteAll() {
 
-        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+        RequestContext ctx = RequestContext.init((ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER));
+
+        String userId = ctx.getAuthenticationId();
 
         service.deleteAllOrders(userId);
         BasePageResponse<?> response = new BasePageResponse<>(null, ErrorMessage.StatusCode.OK.message);
@@ -150,10 +168,12 @@ public class OrderController {
     }
 
     @PostMapping("/delivery/{id}")
-    public ResponseEntity<BasePageResponse<Order>> sendOrder(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id,
+    public ResponseEntity<BasePageResponse<Order>> sendOrder(@PathVariable("id") String id,
             @RequestBody Delivery delivery) {
 
-        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+        RequestContext ctx = RequestContext.init((ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER));
+
+        String userId = ctx.getAuthenticationId();
 
         Order order = service.getOrderById(id);
 
@@ -171,10 +191,12 @@ public class OrderController {
     }
 
     @PostMapping("/update/status/{id}")
-    public ResponseEntity<BasePageResponse<?>> updateStatus(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id,
+    public ResponseEntity<BasePageResponse<?>> updateStatus(@PathVariable("id") String id,
             @RequestBody(required = false) Object request) {
 
-        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+        RequestContext ctx = RequestContext.init((ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER));
+
+        String userId = ctx.getAuthenticationId();
 
         Order order = service.getOrderById(id);
 
@@ -199,9 +221,11 @@ public class OrderController {
     }
 
     @PostMapping("/delivery/print/{id}")
-    public ResponseEntity<BasePageResponse<String>> printOrder(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id) {
+    public ResponseEntity<BasePageResponse<String>> printOrder(@PathVariable("id") String id) {
 
-        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+        RequestContext ctx = RequestContext.init((ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER));
+
+        String userId = ctx.getAuthenticationId();
 
         Order order = service.getOrderById(id);
 
@@ -220,9 +244,11 @@ public class OrderController {
     }
 
     @PostMapping("/delivery/print")
-    public ResponseEntity<BasePageResponse<String>> printAllOrder(@RequestHeader("Authorization") String jwt, @RequestBody(required = false) Object request) {
+    public ResponseEntity<BasePageResponse<String>> printAllOrder(@RequestBody(required = false) Object request) {
 
-        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+        RequestContext ctx = RequestContext.init((ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER));
+
+        String userId = ctx.getAuthenticationId();
 
         ObjectMapper objectMapper = new ObjectMapper();
             Map<String, String> map = objectMapper.convertValue(request, new TypeReference<Map<String, String>>() {});

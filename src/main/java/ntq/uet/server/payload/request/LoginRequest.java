@@ -1,8 +1,10 @@
 package ntq.uet.server.payload.request;
 
+import ntq.uet.server.common.base.BaseObject;
+
 import javax.validation.constraints.NotBlank;
 
-public class LoginRequest {
+public class LoginRequest extends BaseObject {
 	@NotBlank
 	private String username;
 

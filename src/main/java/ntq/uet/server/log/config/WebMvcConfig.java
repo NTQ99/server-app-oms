@@ -1,6 +1,6 @@
 package ntq.uet.server.log.config;
 
-import ntq.uet.server.log.advice.LogInterceptor;
+import ntq.uet.server.log.advice.LogRequestBodyAdviceAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -9,7 +9,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
     @Autowired
-    private LogInterceptor logInterceptor;
+    private LogRequestBodyAdviceAdapter logInterceptor;
 
     public WebMvcConfig() {
     }

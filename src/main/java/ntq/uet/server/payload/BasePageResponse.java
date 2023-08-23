@@ -2,11 +2,12 @@ package ntq.uet.server.payload;
 
 import java.util.Date;
 
+import ntq.uet.server.common.base.BaseObject;
 import org.springframework.web.context.request.WebRequest;
 
 import ntq.uet.server.exceptions.GlobalException;
 
-public class BasePageResponse<T> {
+public class BasePageResponse<T> extends BaseObject {
 
     private MetaData meta;
     private ErrorMessage error;

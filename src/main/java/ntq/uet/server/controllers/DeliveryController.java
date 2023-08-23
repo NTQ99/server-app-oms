@@ -2,6 +2,10 @@ package ntq.uet.server.controllers;
 
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
+import ntq.uet.server.common.base.RequestContext;
+import ntq.uet.server.common.base.ServiceHeader;
+import ntq.uet.server.common.core.constant.CommonConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,20 +18,22 @@ import ntq.uet.server.payload.ErrorMessage;
 import ntq.uet.server.security.jwt.JwtUtils;
 import ntq.uet.server.services.DeliveryUnitService;
 
+import javax.servlet.http.HttpServletRequest;
+
 @RestController
 @RequestMapping("/api/delivery")
+@RequiredArgsConstructor
 public class DeliveryController {
 
-    @Autowired
-    private DeliveryUnitService service;
-
-    @Autowired
-	private JwtUtils jwtUtils;
+    private final DeliveryUnitService service;
+    private final HttpServletRequest httpServletRequest;
 
     @PostMapping("/get")
-    public ResponseEntity<?> getAll(@RequestHeader("Authorization") String jwt) {
+    public ResponseEntity<?> getAll() {
 
-        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+        RequestContext ctx = RequestContext.init((ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER));
+
+        String userId = ctx.getAuthenticationId();
 
         List<DeliveryUnit> deliveries = service.getAllDeliveryUnits(userId);
 
@@ -36,9 +42,11 @@ public class DeliveryController {
     }
 
     @PostMapping("/get/{id}")
-    public ResponseEntity<?> get(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id) {
+    public ResponseEntity<?> get(@PathVariable("id") String id) {
 
-        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+        RequestContext ctx = RequestContext.init((ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER));
+
+        String userId = ctx.getAuthenticationId();
 
         DeliveryUnit deliveryUnit = service.getDeliveryUnitById(id);
 
@@ -49,9 +57,11 @@ public class DeliveryController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<?> create(@RequestHeader("Authorization") String jwt, @RequestBody DeliveryUnit deliveryUnitData) {
+    public ResponseEntity<?> create(@RequestBody DeliveryUnit deliveryUnitData) {
 
-        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+        RequestContext ctx = RequestContext.init((ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER));
+
+        String userId = ctx.getAuthenticationId();
         
         DeliveryUnit currDeliveryData = service.getDeliveryUnitByName(userId, deliveryUnitData.getDeliveryUnitName());
 
@@ -66,10 +76,12 @@ public class DeliveryController {
     }
 
     @PostMapping("/update/{id}")
-    public ResponseEntity<?> update(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id,
+    public ResponseEntity<?> update(@PathVariable("id") String id,
             @RequestBody DeliveryUnit newDeliveryData) {
 
-        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+        RequestContext ctx = RequestContext.init((ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER));
+
+        String userId = ctx.getAuthenticationId();
 
         DeliveryUnit currDeliveryData = service.getDeliveryUnitById(id);
 
@@ -87,9 +99,11 @@ public class DeliveryController {
     }
 
     @PostMapping("/delete/{id}")
-    public ResponseEntity<?> delete(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id) {
+    public ResponseEntity<?> delete(@PathVariable("id") String id) {
 
-        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+        RequestContext ctx = RequestContext.init((ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER));
+
+        String userId = ctx.getAuthenticationId();
 
         DeliveryUnit currDeliveryData = service.getDeliveryUnitById(id);
 
@@ -108,9 +122,11 @@ public class DeliveryController {
     }
 
     @PostMapping("/delete")
-    public ResponseEntity<?> deleteAll(@RequestHeader("Authorization") String jwt) {
+    public ResponseEntity<?> deleteAll() {
 
-        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+        RequestContext ctx = RequestContext.init((ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER));
+
+        String userId = ctx.getAuthenticationId();
 
         service.deleteAllDeliveryUnits(userId);
         BasePageResponse<DeliveryUnit> response = new BasePageResponse<>(null, ErrorMessage.StatusCode.OK.message);

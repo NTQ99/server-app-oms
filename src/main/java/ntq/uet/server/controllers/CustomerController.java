@@ -2,6 +2,7 @@ package ntq.uet.server.controllers;
 
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
 import ntq.uet.server.common.base.RequestContext;
 import ntq.uet.server.common.base.ServiceHeader;
 import ntq.uet.server.common.core.constant.CommonConstants;
@@ -22,19 +23,15 @@ import javax.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/api/customer")
-public class
-
-CustomerController {
-
-    @Autowired
-    private CustomerService service;
-    @Autowired
-	private JwtUtils jwtUtils;
+@RequiredArgsConstructor
+public class CustomerController {
+    private final CustomerService service;
+	private final HttpServletRequest httpServletRequest;
 
     @PostMapping("/get")
-    public ResponseEntity<?> getAll(HttpServletRequest httpServletRequest) {
-        ServiceHeader serviceHeader = (ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER);
-        RequestContext ctx = RequestContext.init(serviceHeader);
+    public ResponseEntity<?> getAll() {
+
+        RequestContext ctx = RequestContext.init((ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER));
 
         String userId = ctx.getAuthenticationId();
 
@@ -45,9 +42,11 @@ CustomerController {
     }
 
     @PostMapping("/get/{id}")
-    public ResponseEntity<?> getById(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id) {
+    public ResponseEntity<?> getById(@PathVariable("id") String id) {
 
-        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+        RequestContext ctx = RequestContext.init((ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER));
+
+        String userId = ctx.getAuthenticationId();
 
         Customer customer = service.getCustomerById(id);
 
@@ -58,9 +57,12 @@ CustomerController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<?> create(@RequestHeader("Authorization") String jwt, @RequestBody Customer customerData) {
+    public ResponseEntity<?> create(@RequestBody Customer customerData) {
 
-        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+        ServiceHeader serviceHeader = (ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER);
+        RequestContext ctx = RequestContext.init(serviceHeader);
+
+        String userId = ctx.getAuthenticationId();
         
         Customer currCustomerData = service.getCustomerByPhone(userId, customerData.getCustomerPhone());
 
@@ -75,10 +77,13 @@ CustomerController {
     }
 
     @PostMapping("/update/{id}")
-    public ResponseEntity<?> update(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id,
+    public ResponseEntity<?> update(@PathVariable("id") String id,
             @RequestBody Customer newCustomerData) {
 
-        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+        ServiceHeader serviceHeader = (ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER);
+        RequestContext ctx = RequestContext.init(serviceHeader);
+
+        String userId = ctx.getAuthenticationId();
 
         Customer currCustomerData = service.getCustomerById(id);
 
@@ -96,10 +101,13 @@ CustomerController {
     }
 
     @PostMapping("/create/address/{id}")
-    public ResponseEntity<?> addAddress(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id,
+    public ResponseEntity<?> addAddress(@PathVariable("id") String id,
             @RequestBody Address newAddress) {
 
-        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+        ServiceHeader serviceHeader = (ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER);
+        RequestContext ctx = RequestContext.init(serviceHeader);
+
+        String userId = ctx.getAuthenticationId();
 
         Customer currCustomerData = service.getCustomerById(id);
 
@@ -117,10 +125,13 @@ CustomerController {
     }
 
     @PostMapping("/update/address/{id}/{index}")
-    public ResponseEntity<?> updateAddress(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id, @PathVariable("index") String index,
+    public ResponseEntity<?> updateAddress(@PathVariable("id") String id, @PathVariable("index") String index,
             @RequestBody Address newAddressData) {
 
-        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+        ServiceHeader serviceHeader = (ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER);
+        RequestContext ctx = RequestContext.init(serviceHeader);
+
+        String userId = ctx.getAuthenticationId();
 
         Customer currCustomerData = service.getCustomerById(id);
 
@@ -138,9 +149,12 @@ CustomerController {
     }
 
     @PostMapping("/delete/address/{id}/{index}")
-    public ResponseEntity<?> removeAddress(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id, @PathVariable("index") String index) {
+    public ResponseEntity<?> removeAddress(@PathVariable("id") String id, @PathVariable("index") String index) {
 
-        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+        ServiceHeader serviceHeader = (ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER);
+        RequestContext ctx = RequestContext.init(serviceHeader);
+
+        String userId = ctx.getAuthenticationId();
 
         Customer currCustomerData = service.getCustomerById(id);
 
@@ -158,9 +172,12 @@ CustomerController {
     }
 
     @PostMapping("/delete/{id}")
-    public ResponseEntity<?> delete(@RequestHeader("Authorization") String jwt, @PathVariable("id") String id) {
+    public ResponseEntity<?> delete(@PathVariable("id") String id) {
 
-        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+        ServiceHeader serviceHeader = (ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER);
+        RequestContext ctx = RequestContext.init(serviceHeader);
+
+        String userId = ctx.getAuthenticationId();
 
         Customer currDeliveryData = service.getCustomerById(id);
 
@@ -179,9 +196,12 @@ CustomerController {
     }
 
     @PostMapping("/delete")
-    public ResponseEntity<?> deleteAll(@RequestHeader("Authorization") String jwt) {
+    public ResponseEntity<?> deleteAll() {
 
-        String userId = jwtUtils.getIdFromJwtToken(jwt.substring(7, jwt.length()));
+        ServiceHeader serviceHeader = (ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER);
+        RequestContext ctx = RequestContext.init(serviceHeader);
+
+        String userId = ctx.getAuthenticationId();
 
         service.deleteAllCustomers(userId);
         BasePageResponse<Customer> response = new BasePageResponse<>(null, ErrorMessage.StatusCode.OK.message);
