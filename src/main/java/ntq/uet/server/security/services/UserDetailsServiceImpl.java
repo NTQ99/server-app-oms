@@ -6,10 +6,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import ntq.uet.server.exceptions.GlobalException;
-import ntq.uet.server.models.User;
-import ntq.uet.server.payload.ErrorMessage;
-import ntq.uet.server.repositories.UserRepository;
+import ntq.uet.server.common.exception.GlobalException;
+import ntq.uet.server.model.entity.User;
+import ntq.uet.server.model.payload.ErrorMessage;
+import ntq.uet.server.repository.UserRepository;
 
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {

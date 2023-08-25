@@ -9,7 +9,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import ntq.uet.server.models.User;
+import ntq.uet.server.model.entity.User;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
