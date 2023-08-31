@@ -1,9 +1,10 @@
-package ntq.uet.server.service;
+package ntq.uet.server.service.impl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import ntq.uet.server.common.exception.ErrorCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,7 +16,6 @@ import ntq.uet.server.model.common.Delivery;
 import ntq.uet.server.model.entity.DeliveryUnit;
 import ntq.uet.server.model.entity.Order;
 import ntq.uet.server.model.entity.Product;
-import ntq.uet.server.model.payload.ErrorMessage;
 import ntq.uet.server.repository.OrderRepository;
 
 @Service("orderService")
@@ -186,7 +186,7 @@ public class OrderService {
             if (product == null)
                 throw new GlobalException("not found product with id: " + item.getProductId());
             if (product.getStock() < item.getQuantity())
-                throw new GlobalException(ErrorMessage.StatusCode.OUT_OF_STOCK.message);
+                throw new GlobalException(ErrorCode.OUT_OF_STOCK);
 
             product.setStock(product.getStock() - item.getQuantity());
             productService.createProduct(product);

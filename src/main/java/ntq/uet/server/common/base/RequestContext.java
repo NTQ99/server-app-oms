@@ -1,8 +1,22 @@
 package ntq.uet.server.common.base;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import ntq.uet.server.common.core.constant.CommonConstants;
+import org.springframework.data.domain.Pageable;
+
+import javax.servlet.http.HttpServletRequest;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class RequestContext {
     private ServiceHeader serviceHeader;
     private Object requestData;
+    private Pageable pageable;
 
     public static RequestContext init() {
         RequestContext context = new RequestContext();
@@ -16,20 +30,17 @@ public class RequestContext {
         return context;
     }
 
-    public void setServiceHeader(ServiceHeader serviceHeader) {
-        this.serviceHeader = serviceHeader;
+    public static RequestContext init(HttpServletRequest httpServletRequest) {
+        RequestContext context = new RequestContext();
+        context.setServiceHeader((ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER));
+        return context;
     }
 
-    public void setRequestData(Object requestData) {
-        this.requestData = requestData;
-    }
-
-    public Object getRequestData() {
-        return this.requestData;
-    }
-
-    public ServiceHeader getServiceHeader() {
-        return this.serviceHeader;
+    public static RequestContext init(HttpServletRequest httpServletRequest, Pageable pageable) {
+        RequestContext context = new RequestContext();
+        context.setServiceHeader((ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER));
+        context.setPageable(pageable);
+        return context;
     }
 
     public String getServiceMessageId() {
@@ -50,13 +61,5 @@ public class RequestContext {
 
     public String getAuthenticationId() {
         return this.serviceHeader == null ? null : this.serviceHeader.getAuthenticationId();
-    }
-
-    public RequestContext() {
-    }
-
-    public RequestContext(ServiceHeader serviceHeader, Object requestData) {
-        this.serviceHeader = serviceHeader;
-        this.requestData = requestData;
     }
 }

@@ -6,15 +6,15 @@ import lombok.RequiredArgsConstructor;
 import ntq.uet.server.common.base.RequestContext;
 import ntq.uet.server.common.base.ServiceHeader;
 import ntq.uet.server.common.core.constant.CommonConstants;
+import ntq.uet.server.common.exception.ErrorCode;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import ntq.uet.server.common.exception.GlobalException;
 import ntq.uet.server.model.entity.Product;
-import ntq.uet.server.model.payload.BasePageResponse;
-import ntq.uet.server.model.payload.ErrorMessage;
-import ntq.uet.server.service.ProductService;
+import ntq.uet.server.common.base.BaseResponse;
+import ntq.uet.server.service.impl.ProductService;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -29,46 +29,46 @@ public class ProductController {
     @PostMapping("/get")
     public ResponseEntity<?> getAll() {
 
-        RequestContext ctx = RequestContext.init((ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER));
+        RequestContext ctx = RequestContext.init(httpServletRequest);
 
         String userId = ctx.getAuthenticationId();
 
         List<Product> products = service.getAllProducts(userId);
 
-        return new ResponseEntity<>(new BasePageResponse<>(products, ErrorMessage.StatusCode.OK.message), HttpStatus.OK);
+        return new ResponseEntity<>(new BaseResponse<>(products, ErrorCode.OK), HttpStatus.OK);
 
     }
 
     @PostMapping("/get/{id}")
     public ResponseEntity<?> getById(@PathVariable("id") String id) {
 
-        RequestContext ctx = RequestContext.init((ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER));
+        RequestContext ctx = RequestContext.init(httpServletRequest);
 
         String userId = ctx.getAuthenticationId();
 
         Product product = service.getProductById(id);
 
-        if (!product.validateUser(userId)) throw new GlobalException(ErrorMessage.StatusCode.UNAUTHORIZED.message);
+        if (!product.validateUser(userId)) throw new GlobalException(ErrorCode.UNAUTHORIZED);
 
-        return new ResponseEntity<>(new BasePageResponse<>(product, ErrorMessage.StatusCode.OK.message), HttpStatus.OK);
+        return new ResponseEntity<>(new BaseResponse<>(product, ErrorCode.OK), HttpStatus.OK);
 
     }
 
     @PostMapping("/create")
     public ResponseEntity<?> create(@RequestBody Product productData) {
 
-        RequestContext ctx = RequestContext.init((ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER));
+        RequestContext ctx = RequestContext.init(httpServletRequest);
 
         String userId = ctx.getAuthenticationId();
         
         Product currProductData = service.getProductByName(userId, productData.getProductName());
 
         if (currProductData != null) {
-            throw new GlobalException(ErrorMessage.StatusCode.EXIST.message);
+            throw new GlobalException(ErrorCode.EXIST);
         }
 
         productData.setUserId(userId);
-        BasePageResponse<Product> response = new BasePageResponse<>(service.createProduct(productData), ErrorMessage.StatusCode.CREATED.message);
+        BaseResponse<Product> response = new BaseResponse<>(service.createProduct(productData), ErrorCode.CREATED);
         return new ResponseEntity<>(response, HttpStatus.OK);
 
     }
@@ -77,21 +77,21 @@ public class ProductController {
     public ResponseEntity<?> update(@PathVariable("id") String id,
             @RequestBody Product newProductData) {
 
-        RequestContext ctx = RequestContext.init((ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER));
+        RequestContext ctx = RequestContext.init(httpServletRequest);
 
         String userId = ctx.getAuthenticationId();
 
         Product currProductData = service.getProductById(id);
 
         if (currProductData == null) {
-            throw new GlobalException(ErrorMessage.StatusCode.NOT_FOUND.message);
+            throw new GlobalException(ErrorCode.NOT_FOUND);
         }
         
         if (!currProductData.validateUser(userId)) {
-            throw new GlobalException(ErrorMessage.StatusCode.UNAUTHORIZED.message);
+            throw new GlobalException(ErrorCode.UNAUTHORIZED);
         }
 
-        BasePageResponse<Product> response = new BasePageResponse<>(service.updateProduct(currProductData, newProductData), ErrorMessage.StatusCode.MODIFIED.message);
+        BaseResponse<Product> response = new BaseResponse<>(service.updateProduct(currProductData, newProductData), ErrorCode.MODIFIED);
         return new ResponseEntity<>(response, HttpStatus.OK);
 
     }
@@ -99,22 +99,22 @@ public class ProductController {
     @PostMapping("/delete/{id}")
     public ResponseEntity<?> delete(@PathVariable("id") String id) {
 
-        RequestContext ctx = RequestContext.init((ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER));
+        RequestContext ctx = RequestContext.init(httpServletRequest);
 
         String userId = ctx.getAuthenticationId();
 
         Product currDeliveryData = service.getProductById(id);
 
         if (currDeliveryData == null) {
-            throw new GlobalException(ErrorMessage.StatusCode.NOT_FOUND.message);
+            throw new GlobalException(ErrorCode.NOT_FOUND);
         }
         
         if (!currDeliveryData.validateUser(userId)) {
-            throw new GlobalException(ErrorMessage.StatusCode.UNAUTHORIZED.message);
+            throw new GlobalException(ErrorCode.UNAUTHORIZED);
         }
 
         service.deleteProduct(id);
-        BasePageResponse<Product> response = new BasePageResponse<>(null, ErrorMessage.StatusCode.OK.message);
+        BaseResponse<Product> response = new BaseResponse<>(null, ErrorCode.OK);
         return new ResponseEntity<>(response, HttpStatus.OK);
 
     }
@@ -122,12 +122,12 @@ public class ProductController {
     @PostMapping("/delete")
     public ResponseEntity<?> deleteAll() {
 
-        RequestContext ctx = RequestContext.init((ServiceHeader) httpServletRequest.getAttribute(CommonConstants.SERVICE_HEADER));
+        RequestContext ctx = RequestContext.init(httpServletRequest);
 
         String userId = ctx.getAuthenticationId();
 
         service.deleteAllProducts(userId);
-        BasePageResponse<Product> response = new BasePageResponse<>(null, ErrorMessage.StatusCode.OK.message);
+        BaseResponse<Product> response = new BaseResponse<>(null, ErrorCode.OK);
         return new ResponseEntity<>(response, HttpStatus.OK);
 
     }

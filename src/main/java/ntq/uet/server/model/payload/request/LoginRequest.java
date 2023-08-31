@@ -1,29 +1,15 @@
 package ntq.uet.server.model.payload.request;
 
+import lombok.Getter;
 import ntq.uet.server.common.base.BaseObject;
 
 import javax.validation.constraints.NotBlank;
 
+@Getter
 public class LoginRequest extends BaseObject {
+
 	@NotBlank
 	private String username;
-
 	@NotBlank
 	private String password;
-
-	public String getUsername() {
-		return username;
-	}
-
-	public void setUsername(String username) {
-		this.username = username;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
 }

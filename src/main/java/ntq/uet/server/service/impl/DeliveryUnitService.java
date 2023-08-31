@@ -1,4 +1,4 @@
-package ntq.uet.server.service;
+package ntq.uet.server.service.impl;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import ntq.uet.server.model.entity.DeliveryUnit;
 import ntq.uet.server.repository.DeliveryUnitRepository;
 
-@Service("deliveryUnitService")
+@Service
 public class DeliveryUnitService {
     @Autowired
     private DeliveryUnitRepository deliveryUnitRepository;

@@ -1,4 +1,4 @@
-package ntq.uet.server.service;
+package ntq.uet.server.service.impl;
 
 import java.util.List;
 
